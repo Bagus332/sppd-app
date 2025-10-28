@@ -12,7 +12,9 @@ exports.createSuratTugas = async (req, res) => {
 
         // 2. Load Template Word
         const content = fs.readFileSync(
-            path.resolve(__dirname, '../templates/Template Surat Tugas (1).docx'),
+            // Pastikan path ini benar relatif terhadap posisi surat.controller.js
+            // surat.controller.js berada di 'controllers', sehingga perlu '../' untuk keluar
+            path.resolve(__dirname, '../templates/Template Surat Tugas (1).docx'), 
             'binary'
         );
 
