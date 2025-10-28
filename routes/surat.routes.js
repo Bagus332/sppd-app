@@ -11,19 +11,6 @@ const suratController = require('../controllers/surat.controller');
  */
 router.post('/buat', suratController.createSuratTugas);
 
-/**
- * @route GET /api/surat
- * @desc Mendapatkan semua data Surat Tugas yang tersimpan
- * @access Public (atau Private)
- */
-router.get('/', suratController.findAllSuratTugas);
 
-/**
- * @route GET /api/surat/:id
- * @desc Mendapatkan detail Surat Tugas berdasarkan ID
- * @access Public (atau Private)
- */
-router.get('/:id', suratController.findOneSuratTugas);
-
-
+// Export the router
 module.exports = router;
