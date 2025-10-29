@@ -56,6 +56,7 @@ export default function InputSurat() {
               filename = matches[1].replace(/['"]/g, '');
           }
       }
+      
       link.setAttribute('download', filename);
 
       // 3. Memicu download

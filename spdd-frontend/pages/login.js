@@ -13,7 +13,7 @@ export default function Login() {
 
     try {
       // Ganti dengan endpoint autentikasi Express.js Anda
-      const response = await fetch('http://localhost:4000/api/auth/login', {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

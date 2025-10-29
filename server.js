@@ -7,12 +7,20 @@ const suratRoutes = require('./routes/surat.routes');
 
 // Inisialisasi Aplikasi Express
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors());
+// ----------------------------------------------------
+const corsOptions = {
+  // Izinkan permintaan hanya dari alamat dan port frontend Anda (3001)
+  origin: 'http://localhost:3001', 
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+};
+
+app.use(cors(corsOptions)); // <-- Gunakan CORS dengan opsi
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// ----------------------------------------------------
 
 // Panggil fungsi koneksi database
 connectDB();
