@@ -7,13 +7,13 @@ const suratRoutes = require('./routes/surat.routes');
 
 // Inisialisasi Aplikasi Express
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
 // Middleware
 // ----------------------------------------------------
 const corsOptions = {
-  // Izinkan permintaan hanya dari alamat dan port frontend Anda (3001)
-  origin: 'http://localhost:3001', 
+  // Izinkan permintaan dari frontend Next.js
+  origin: 'http://localhost:3000',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 };
