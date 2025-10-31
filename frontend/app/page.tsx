@@ -1,7 +1,22 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from './contexts/AuthContext';
 import SuratTugasForm from './components/SuratTugasForm';
 import Header from './components/Header';
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/login');
+      return;
+    }
+  }, [isAuthenticated, router]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />

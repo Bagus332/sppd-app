@@ -40,5 +40,6 @@ const connectDB = async () => {
 
 module.exports = {
     sequelize,
-    connectDB
+    connectDB,
+    secret: "sppd-secret-key" // Tambahkan secret key untuk JWT
 };
