@@ -28,7 +28,7 @@ const connectDB = async () => {
 
         // Sinkronisasi semua model (membuat tabel jika belum ada)
         // Gunakan { force: true } HANYA saat pengembangan, karena akan menghapus dan membuat ulang tabel
-        await sequelize.sync();
+        await sequelize.sync({ alter: true }); // <-- { alter: true } untuk menambahkan/mengubah kolom tanpa menghapus data
         console.log('Semua model telah disinkronkan!');
 
     } catch (error) {
