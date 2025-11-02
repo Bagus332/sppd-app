@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+export interface ApiError extends Error {
+  message: string;
+  status?: number;
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,9 +48,13 @@ export default function LoginForm() {
         document.cookie = `token=${data.token}; path=/; max-age=86400; secure; samesite=strict`;
 
         router.push('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Login error:', err);
-        setError(err.message || 'Gagal terhubung ke server. Pastikan server berjalan.');
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError('Gagal terhubung ke server. Pastikan server berjalan.');
+        }
     } finally {
         setIsLoading(false);
     }
@@ -55,7 +64,7 @@ export default function LoginForm() {
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg border border-neutral-200">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-[#5c7a54] to-[#6b8c62] bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold bg-linear-to-r from-[#5c7a54] to-[#6b8c62] bg-clip-text text-transparent">
           Login SPPD
         </h1>
         <p className="text-sm text-neutral-600 mt-2">
@@ -97,7 +106,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-8 py-3 bg-gradient-to-r from-[#5c7a54] to-[#6b8c62] text-white rounded-lg shadow-lg hover:from-[#485f41] hover:to-[#5c7a54] focus:outline-none focus:ring-2 focus:ring-[#5c7a54] disabled:from-[#7b9674] disabled:to-[#6b8563] transition-all duration-200 flex items-center justify-center gap-2 font-medium"
+          className="w-full px-8 py-3 bg-linear-to-r from-[#5c7a54] to-[#6b8c62] text-white rounded-lg shadow-lg hover:from-[#485f41] hover:to-[#5c7a54] focus:outline-none focus:ring-2 focus:ring-[#5c7a54] disabled:from-[#7b9674] disabled:to-[#6b8563] transition-all duration-200 flex items-center justify-center gap-2 font-medium"
         >
           {isLoading ? (
             <>
