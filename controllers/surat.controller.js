@@ -91,3 +91,86 @@ exports.createSuratTugas = async (req, res) => {
         res.status(500).send({ message: "Gagal membuat surat tugas", error: error.message });
     }
 };
+
+/**
+ * Handle pembuatan dokumen SPD (Form PMK 113/PMK.05/2012)
+ */
+exports.createSPD = async (req, res) => {
+    try {
+        const { 
+            spd_nomor, ppk_name, pegawai_utama, pangkat_gol, 
+            jabatan_instansi, tingkat_biaya, maksud_dinas, alat_angkut, 
+            tempat_berangkat, tempat_tujuan, lama_hari, tgl_berangkat, 
+            tgl_kembali, pengikut_list, ppk_nip 
+        } = req.body;
+
+        // 1. Load Template Word
+        const templatePath = path.resolve(__dirname, '../templates/Form SPD FST (1).docx');
+        const content = fs.readFileSync(templatePath, 'binary');
+
+        const zip = new PizZip(content);
+        const doc = new Docxtemplater(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+        });
+
+        // 2. Format tanggal
+        const tglDikeluarkanFormatted = new Date().toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const tglBerangkatFormatted = new Date(tgl_berangkat).toLocaleDateString('id-ID', 
+            { day: 'numeric', month: 'long', year: 'numeric' });
+        const tglKembaliFormatted = new Date(tgl_kembali).toLocaleDateString('id-ID', 
+            { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        // Format data pengikut
+        const pengikutData = (pengikut_list || []).map(p => ({
+            pengikut_nama: p.nama,
+            pengikut_tgl_lahir: new Date(p.tgl_lahir).toLocaleDateString('id-ID'),
+            pengikut_ket: p.keterangan || '-',
+        }));
+
+        // 3. Set data untuk template
+        doc.setData({
+            nomor: spd_nomor,
+            ppk_name,
+            pegawai_nama_nip: `${pegawai_utama.nama} / NIP ${pegawai_utama.nip}`,
+            pangkat_gol,
+            jabatan_instansi,
+            tingkat_biaya,
+            maksud_dinas,
+            alat_angkut,
+            tempat_berangkat,
+            tempat_tujuan,
+            lama_hari,
+            tgl_berangkat: tglBerangkatFormatted,
+            tgl_kembali: tglKembaliFormatted,
+            pengikut_loop: pengikutData,
+            tgl_dikeluarkan: tglDikeluarkanFormatted,
+            ppk_nip,
+            tgl_berangkat_i: tglBerangkatFormatted,
+            tujuan_i: tempat_tujuan,
+        });
+
+        // 4. Render dan kirim dokumen
+        doc.render();
+        
+        const buffer = doc.getZip().generate({
+            type: 'nodebuffer',
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        });
+
+        res.setHeader('Content-Disposition', `attachment; filename="SPD_${spd_nomor}.docx"`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.send(buffer);
+
+    } catch (error) {
+        console.error("SPD Controller Error:", error);
+        res.status(500).send({ 
+            message: "Gagal membuat dokumen SPD", 
+            error: error.message 
+        });
+    }
+};

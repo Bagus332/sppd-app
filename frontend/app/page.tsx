@@ -15,6 +15,7 @@ export default function Home() {
       router.replace('/login');
       return;
     }
+    router.replace('/dashboard');
   }, [isAuthenticated, router]);
 
   return (

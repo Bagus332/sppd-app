@@ -11,6 +11,9 @@ const suratController = require('../controllers/surat.controller');
  */
 router.post('/buat', suratController.createSuratTugas);
 
+router.post('/api/surat/spd/buat', suratController.createSPD);// untuk membuat SPD
+
+
 
 // Export the router
 module.exports = router;
