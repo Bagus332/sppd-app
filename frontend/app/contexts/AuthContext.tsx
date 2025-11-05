@@ -1,72 +1,87 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
+// Tambahkan isAuthenticated di interface
 interface AuthContextType {
+  user: any;
   isAuthenticated: boolean;
-  user: any | null;
-  login: (token: string) => void;
+  login: (data: any) => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  user: null,
-  login: () => {},
-  logout: () => {},
-});
+// Buat context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
   const router = useRouter();
 
+  // 🔹 Cek token di localStorage setiap reload (biar tetap tahu status login)
   useEffect(() => {
-    // Check if user is logged in on mount
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      validateToken(token);
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
     }
   }, []);
 
-  const validateToken = async (token: string) => {
-    try {
-      const response = await fetch('http://localhost:8080/api/auth/validate', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        setIsAuthenticated(true);
-      } else {
-        logout();
-      }
-    } catch (error) {
-      logout();
-    }
-  };
-
-  const login = (token: string) => {
-    localStorage.setItem('token', token);
+  // 🔹 Fungsi login
+  const login = (data: any) => {
+    setUser(data);
+    localStorage.setItem("token", data?.token || "");
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUser(null);
-    router.push('/login');
+  // 🔹 Fungsi logout
+  const logout = async () => {
+    console.log("Logout diklik");
+    const confirmLogout = window.confirm("Apakah Anda yakin ingin logout?");
+    if (!confirmLogout) return;
+
+    try {
+      await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      console.log("Menghapus token...");
+      localStorage.removeItem("token");
+      sessionStorage.clear();
+      document.cookie =
+        "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+
+      setUser(null);
+      setIsAuthenticated(false);
+
+      console.log("Berhasil logout, mengarahkan ke halaman login...");
+      router.push("/login");
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  // Gunakan useMemo agar value tidak berubah setiap render
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated,
+      login,
+      logout,
+    }),
+    [user, isAuthenticated]
   );
-}
 
-export const useAuth = () => useContext(AuthContext);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Hook custom untuk akses AuthContext
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
+};

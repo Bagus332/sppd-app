@@ -1,31 +1,104 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Header from '../components/Header'; // pastikan path sesuai lokasi Header kamu
+import { FileText, FilePlus2, Users, FolderOpen, BarChart3 } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
 
+  const menuItems = [
+    {
+      title: 'Buat Surat Tugas',
+      description: 'Buat surat tugas baru untuk perjalanan dinas.',
+      icon: <FilePlus2 size={40} className="text-green-500" />,
+      action: () => router.push('/surat-tugas/buat'),
+      gradient: 'from-green-500 to-green-600',
+    },
+    {
+      title: 'Buat SPD',
+      description: 'Buat Surat Perjalanan Dinas (SPD) baru.',
+      icon: <FileText size={40} className="text-emerald-500" />,
+      action: () => router.push('/spd/buat'),
+      gradient: 'from-emerald-500 to-green-600',
+    },
+    {
+      title: 'Data Pegawai',
+      description: 'Lihat dan kelola data pegawai yang tersedia.',
+      icon: <Users size={40} className="text-lime-500" />,
+      action: () => router.push('/pegawai'),
+      gradient: 'from-lime-500 to-green-500',
+    },
+    {
+      title: 'Daftar Surat',
+      description: 'Lihat daftar seluruh surat tugas dan SPD yang telah dibuat.',
+      icon: <FolderOpen size={40} className="text-teal-500" />,
+      action: () => router.push('/surat-tugas'),
+      gradient: 'from-teal-500 to-green-500',
+    },
+  ];
+
+  const stats = [
+    { label: 'Total Surat Tugas', value: 124, color: 'text-green-600' },
+    { label: 'Total SPD', value: 87, color: 'text-emerald-600' },
+    { label: 'Data Pegawai', value: 42, color: 'text-lime-600' },
+    { label: 'Surat Selesai', value: 93, color: 'text-teal-600' },
+  ];
+
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard SPPD</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div 
-          onClick={() => router.push('/surat-tugas/buat')}
-          className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg cursor-pointer transition-all"
-        >
-          <h2 className="text-xl font-semibold mb-2">Buat Surat Tugas</h2>
-          <p className="text-gray-600">Buat surat tugas baru untuk perjalanan dinas</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header dipanggil di sini */}
+      <Header />
+
+      {/* Konten Dashboard */}
+      <main className="px-6 py-10">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-lg p-8 mb-10">
+          <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
+          <p className="text-green-100 text-sm">
+            Sistem Pembuatan Surat Tugas dan Surat Perjalanan Dinas Terpadu
+          </p>
         </div>
 
-        <div 
-          onClick={() => router.push('/spd/buat')}
-          className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg cursor-pointer transition-all"
-        >
-          <h2 className="text-xl font-semibold mb-2">Buat SPD</h2>
-          <p className="text-gray-600">Buat Surat Perjalanan Dinas (SPD) baru</p>
+        {/* Statistik */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 text-center border border-gray-100"
+            >
+              <BarChart3 size={28} className={`${stat.color} mx-auto mb-3`} />
+              <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
+              <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
+            </div>
+          ))}
         </div>
-      </div>
+
+        {/* Menu Interaktif */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+          {menuItems.map((item, index) => (
+            <div
+              key={index}
+              onClick={item.action}
+              className="cursor-pointer bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-xl transform hover:-translate-y-1 transition-all p-6 relative overflow-hidden group"
+            >
+              <div
+                className={`absolute inset-0 opacity-10 bg-gradient-to-br ${item.gradient} rounded-2xl`}
+              ></div>
+
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className="mb-4">{item.icon}</div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-1 group-hover:text-gray-900">
+                    {item.title}
+                  </h2>
+                  <p className="text-sm text-gray-600">{item.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }

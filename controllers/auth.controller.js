@@ -10,29 +10,27 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // Validasi sederhana
     if (!username || !email || !password) {
-      return res.status(400).send({ message: "Semua field wajib diisi." });
+      return res.status(400).json({ message: "Semua field wajib diisi." });
     }
 
-    // Cek apakah email atau username sudah terdaftar
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).send({ message: "Email sudah terdaftar." });
+      return res.status(400).json({ message: "Email sudah terdaftar." });
     }
 
-    // Buat user baru
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       username,
       email,
-      password: bcrypt.hashSync(password, 8),
+      password: hashedPassword,
       role: role || 'user',
     });
 
-    res.status(201).send({ message: "Registrasi berhasil!", user });
+    return res.status(201).json({ message: "Registrasi berhasil!", user });
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).send({ message: "Terjadi kesalahan server." });
+    return res.status(500).json({ message: "Terjadi kesalahan server." });
   }
 };
 
@@ -43,41 +41,37 @@ exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Cek data input
     if (!username || !password) {
-      return res.status(400).send({ message: "Username dan password wajib diisi." });
+      return res.status(400).json({ message: "Username dan password wajib diisi." });
     }
 
-    // Cari user berdasarkan username
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res.status(404).send({ message: "User tidak ditemukan." });
+      return res.status(404).json({ message: "User tidak ditemukan." });
     }
 
-    // Verifikasi password
-    const passwordIsValid = bcrypt.compareSync(password, user.password);
-    if (!passwordIsValid) {
-      return res.status(401).send({ message: "Password tidak valid!" });
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return res.status(401).json({ message: "Password tidak valid!" });
     }
 
-    // Generate JWT token
+    // Generate JWT token (1 jam)
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      config.secret,
-      { expiresIn: 86400 } // 24 jam
+      config.secret || process.env.JWT_SECRET || 'secretkey',
+      { expiresIn: '1h' }
     );
 
     // Simpan token di cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // ubah ke true jika pakai HTTPS
+      secure: process.env.NODE_ENV === 'production',
       sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 hari
+      maxAge: 60 * 60 * 1000, // 1 jam
       path: "/",
     });
 
-    // Kirim respon sukses ke frontend
-    res.status(200).send({
+    return res.status(200).json({
       message: "Login berhasil",
       user: {
         id: user.id,
@@ -86,15 +80,51 @@ exports.login = async (req, res) => {
         role: user.role,
       },
     });
-
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).send({ message: "Terjadi kesalahan server." });
+    return res.status(500).json({ message: "Terjadi kesalahan server." });
   }
 };
 
 /**
- * BUAT ADMIN DEFAULT (JIKA BELUM ADA)
+ * LOGOUT USER
+ */
+exports.logout = async (req, res) => {
+  try {
+    // Kalau kamu simpan token di frontend (localStorage / cookie)
+    // maka cukup arahkan frontend untuk menghapusnya.
+    res.status(200).json({
+      message: 'Logout berhasil. Silakan hapus token di sisi klien.'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan saat logout.' });
+  }
+};
+
+/**
+ * CEK STATUS LOGIN
+ */
+exports.checkAuth = (req, res) => {
+  const token = req.cookies?.token || req.headers['authorization'];
+  if (!token) {
+    return res.status(200).json({ loggedIn: false });
+  }
+
+  try {
+    const tokenString = token.startsWith('Bearer ') ? token.slice(7) : token;
+    const decoded = jwt.verify(
+      tokenString,
+      config.secret || process.env.JWT_SECRET || 'secretkey'
+    );
+    return res.status(200).json({ loggedIn: true, userId: decoded.id });
+  } catch (err) {
+    return res.status(200).json({ loggedIn: false });
+  }
+};
+
+/**
+ * BUAT ADMIN DEFAULT
  */
 exports.createInitialAdmin = async () => {
   try {
@@ -103,7 +133,7 @@ exports.createInitialAdmin = async () => {
       await User.create({
         username: 'admin',
         email: 'admin@example.com',
-        password: bcrypt.hashSync('admin123', 8),
+        password: await bcrypt.hash('admin123', 10),
         role: 'admin',
       });
       console.log('Initial admin user created successfully');
