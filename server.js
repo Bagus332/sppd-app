@@ -1,71 +1,75 @@
-// server.js
-require('dotenv').config(); // Load .env paling awal
+// backend/server.js
+require('dotenv').config(); // Load variabel lingkungan (.env) paling awal
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./db.config');
+const { createInitialAdmin } = require('./controllers/auth.controller');
+
+// Import routes
 const suratRoutes = require('./routes/surat.routes');
 const authRoutes = require('./routes/auth.routes');
-const { createInitialAdmin } = require('./controllers/auth.controller');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ------------------- Middleware -------------------
+// =====================================================
+// 🧩 MIDDLEWARE UTAMA
+// =====================================================
 
-// Konfigurasi CORS agar bisa diakses dari frontend (Next.js)
-const corsOptions = {
-  origin: 'http://localhost:3000', // URL frontend kamu
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// Konfigurasi CORS agar API dapat diakses dari frontend (Next.js)
+app.use(
+  cors({
+    origin: 'http://localhost:3000', // Ganti jika domain frontend berubah
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
 
-// Middleware parsing body
+// Parsing request body JSON dan form-urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware logging (diperkuat agar tidak error)
+// Middleware logging sederhana untuk debugging
 app.use((req, res, next) => {
   console.log(`\n[${new Date().toISOString()}] ${req.method} ${req.url}`);
-
-  try {
-    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
-      console.log('Body:', req.body);
-    } else {
-      console.log('Body: (kosong)');
-    }
-  } catch (err) {
-    console.warn('⚠️ Tidak dapat membaca body:', err.message);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('Body:', req.body);
+  } else {
+    console.log('Body: (kosong)');
   }
-
   next();
 });
 
-// --------------------------------------------------
+// =====================================================
+// 🚏 ROUTES
+// =====================================================
 
-// ------------------- Routes -------------------
+// Root route (cek koneksi API)
 app.get('/', (req, res) => {
   res.json({
-    message: 'Selamat datang di API Otomatisasi Surat Perjalanan Dinas.',
+    message: 'Selamat datang di API Otomatisasi Surat Perjalanan Dinas 🚀',
   });
 });
 
-// Route utama
+// Route surat tugas & SPD
 app.use('/api/surat', suratRoutes);
+
+// Route autentikasi (register, login, logout)
 app.use('/api/auth', authRoutes);
 
-// --------------------------------------------------
+// =====================================================
+// 🗄️ KONEKSI DATABASE DAN MENJALANKAN SERVER
+// =====================================================
 
-// ------------------- Koneksi Database -------------------
 connectDB()
-  .then(() => {
-    console.log('✅ Koneksi database berhasil.');
+  .then(async () => {
+    console.log('✅ Koneksi ke database berhasil.');
 
-    // Buat akun admin awal (jika belum ada)
-    createInitialAdmin();
+    // Membuat akun admin awal jika belum ada
+    await createInitialAdmin();
 
-    // Jalankan server setelah koneksi DB berhasil
+    // Jalankan server setelah database terkoneksi
     app.listen(PORT, () => {
       console.log(`🚀 Server berjalan di port ${PORT}`);
     });
@@ -74,4 +78,3 @@ connectDB()
     console.error('❌ Gagal koneksi ke database:', error.message);
     process.exit(1);
   });
-// --------------------------------------------------

@@ -1,26 +1,19 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Header from '../components/Header'; // pastikan path sesuai lokasi Header kamu
-import { FileText, FilePlus2, Users, FolderOpen, BarChart3 } from 'lucide-react';
+import Header from '../components/Header';
+import { FileText, Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
 
   const menuItems = [
     {
-      title: 'Buat Surat Tugas',
-      description: 'Buat surat tugas baru untuk perjalanan dinas.',
-      icon: <FilePlus2 size={40} className="text-green-500" />,
-      action: () => router.push('/surat-tugas/buat'),
+      title: 'Buat Perjalanan Dinas',
+      description: 'Isi form gabungan untuk membuat Surat Tugas dan SPD sekaligus.',
+      icon: <Plane size={40} className="text-green-500" />,
+      action: () => router.push('/perjalanan-dinas'),
       gradient: 'from-green-500 to-green-600',
-    },
-    {
-      title: 'Buat SPD',
-      description: 'Buat Surat Perjalanan Dinas (SPD) baru.',
-      icon: <FileText size={40} className="text-emerald-500" />,
-      action: () => router.push('/spd/buat'),
-      gradient: 'from-emerald-500 to-green-600',
     },
     {
       title: 'Data Pegawai',
@@ -33,13 +26,13 @@ export default function Dashboard() {
       title: 'Daftar Surat',
       description: 'Lihat daftar seluruh surat tugas dan SPD yang telah dibuat.',
       icon: <FolderOpen size={40} className="text-teal-500" />,
-      action: () => router.push('/surat-tugas'),
+      action: () => router.push('/daftar-surat'),
       gradient: 'from-teal-500 to-green-500',
     },
   ];
 
   const stats = [
-    { label: 'Total Surat Tugas', value: 124, color: 'text-green-600' },
+    { label: 'Total Perjalanan Dinas', value: 124, color: 'text-green-600' },
     { label: 'Total SPD', value: 87, color: 'text-emerald-600' },
     { label: 'Data Pegawai', value: 42, color: 'text-lime-600' },
     { label: 'Surat Selesai', value: 93, color: 'text-teal-600' },
@@ -47,16 +40,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header dipanggil di sini */}
       <Header />
 
-      {/* Konten Dashboard */}
       <main className="px-6 py-10">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-lg p-8 mb-10">
           <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
           <p className="text-green-100 text-sm">
-            Sistem Pembuatan Surat Tugas dan Surat Perjalanan Dinas Terpadu
+            Sistem Pembuatan Surat Perjalanan Dinas Terpadu
           </p>
         </div>
 
@@ -75,7 +66,7 @@ export default function Dashboard() {
         </div>
 
         {/* Menu Interaktif */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
           {menuItems.map((item, index) => (
             <div
               key={index}

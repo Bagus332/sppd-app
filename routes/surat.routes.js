@@ -1,19 +1,24 @@
-// routes/surat.routes.js
-const express = require ('express');
+// backend/routes/surat.routes.js
+const express = require('express');
 const router = express.Router();
 const suratController = require('../controllers/surat.controller');
 
-
 /**
- * @route POST /api/surat/buat
- * @desc Membuat data Surat Tugas baru dan menghasilkan file .docx
- * @access Public (atau Private, tergantung kebutuhan autentikasi)
+ * ROUTES UNTUK GENERATE SURAT
+ * ---------------------------
+ * Semua endpoint di bawah ini menghasilkan file .docx
+ * (tidak disimpan ke database, hanya diunduh)
  */
+
 router.post('/buat', suratController.createSuratTugas);
+router.post('/spd/buat', suratController.createSPD);
 
-router.post('/api/surat/spd/buat', suratController.createSPD);// untuk membuat SPD
+router.post('/simpan', suratController.perjalananDinas);
 
+// Generate Surat Tugas (.docx)
+router.post('/generate-surat-tugas', suratController.createSuratTugas);
 
+// Generate SPD (.docx)
+router.post('/generate-spd', suratController.createSPD);
 
-// Export the router
 module.exports = router;

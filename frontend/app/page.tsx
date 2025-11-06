@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './contexts/AuthContext';
-import SuratTugasForm from './components/SuratTugasForm';
 import Header from './components/Header';
 
 export default function Home() {
@@ -44,9 +43,6 @@ export default function Home() {
                 <div className="relative flex justify-center">
                   <span className="bg-gray-50 px-3 text-base font-semibold leading-6 text-gray-900">Form Surat Tugas</span>
                 </div>
-              </div>
-              <div className="mt-8">
-                <SuratTugasForm />
               </div>
             </div>
           </div>
