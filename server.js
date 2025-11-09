@@ -8,6 +8,7 @@ const { createInitialAdmin } = require('./controllers/auth.controller');
 // Import routes
 const suratRoutes = require('./routes/surat.routes');
 const authRoutes = require('./routes/auth.routes');
+const pegawaiRoutes = require('./routes/pegawai.routes');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -51,6 +52,9 @@ app.get('/', (req, res) => {
     message: 'Selamat datang di API Otomatisasi Surat Perjalanan Dinas 🚀',
   });
 });
+
+//  route pegawai
+app.use('/api', pegawaiRoutes);
 
 // Route surat tugas & SPD
 app.use('/api/surat', suratRoutes);

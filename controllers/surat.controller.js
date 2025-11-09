@@ -5,7 +5,6 @@ const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
 const suratController = require('../controllers/surat.controller');
-const PerjalananDinas = require('../models/PerjalananDinas');
 const db = require('../db.config');
 
 // ===========================

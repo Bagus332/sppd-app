@@ -6,69 +6,72 @@ const PerjalananDinas = sequelize.define('PerjalananDinas', {
 // 📄 Bagian Administrasi Surat
 // ----------------------------
 nomor: {
-type: DataTypes.STRING(100),
-allowNull: true,
-comment: 'Nomor surat tugas',
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    comment: 'Nomor surat tugas',
 },
 menimbang_kegiatan: {
-type: DataTypes.TEXT,
-allowNull: true,
+    type: DataTypes.TEXT,
+    allowNull: true,
 },
 dasar_dipa: {
-type: DataTypes.STRING(255),
-allowNull: true,
+    type: DataTypes.STRING(255),
+    allowNull: true,
 },
 dasar_dipa_tanggal: {
-type: DataTypes.DATEONLY,
-allowNull: true,
+    type: DataTypes.DATEONLY,
+    allowNull: true,
 },
 tujuan_kegiatan: {
-type: DataTypes.TEXT,
-allowNull: true,
+    type: DataTypes.TEXT,
+    allowNull: true,
 },
 tanggal_mulai: {
-type: DataTypes.DATEONLY,
-allowNull: true,
+    type: DataTypes.DATEONLY,
+    allowNull: true,
 },
 tanggal_selesai: {
-type: DataTypes.DATEONLY,
-allowNull: true,
+    type: DataTypes.DATEONLY,
+    allowNull: true,
 },
 
 // ----------------------------
 // 👥 Pegawai & Pengikut (JSON)
 // ----------------------------
 pegawai_list: {
-type: DataTypes.TEXT,
-allowNull: false,
-comment: 'Array JSON pegawai',
-get() {
-const raw = this.getDataValue('pegawai_list');
-try {
-return JSON.parse(raw);
-} catch {
-return [];
-}
-},
-set(value) {
-this.setDataValue('pegawai_list', JSON.stringify(value));
-},
+    type: DataTypes.TEXT,
+    allowNull: false,
+    comment: 'Array JSON pegawai',
+
+    get() {
+        const raw = this.getDataValue('pegawai_list');
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    },
+    
+    set(value) {
+        this.setDataValue('pegawai_list', JSON.stringify(value));
+    },
 },
 pengikut_list: {
-type: DataTypes.TEXT,
-allowNull: true,
-comment: 'Array JSON pengikut',
-get() {
-const raw = this.getDataValue('pengikut_list');
-try {
-return JSON.parse(raw);
-} catch {
-return [];
-}
-},
-set(value) {
-this.setDataValue('pengikut_list', JSON.stringify(value));
-},
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Array JSON pengikut',
+    get() {
+        const raw = this.getDataValue('pengikut_list');
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    },
+    
+    set(value) {
+        this.setDataValue('pengikut_list', JSON.stringify(value));
+    },
 },
 
 // ----------------------------
@@ -94,8 +97,8 @@ tgl_kembali: { type: DataTypes.DATEONLY, allowNull: true },
 tanggal_surat: { type: DataTypes.DATEONLY, allowNull: true },
 nama_dekan: { type: DataTypes.STRING(100), allowNull: true },
 }, {
-tableName: 'perjalanan_dinas',
-timestamps: true,
+    tableName: 'perjalanan_dinas',
+    timestamps: true,
 });
 
 module.exports = PerjalananDinas;
