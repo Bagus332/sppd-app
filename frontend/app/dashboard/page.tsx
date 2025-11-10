@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
+import { useAuth } from "../contexts/AuthContext";
 import { FileText, Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
 
 export default function Dashboard() {

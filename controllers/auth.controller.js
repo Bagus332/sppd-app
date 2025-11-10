@@ -91,16 +91,14 @@ exports.login = async (req, res) => {
  */
 exports.logout = async (req, res) => {
   try {
-    // Kalau kamu simpan token di frontend (localStorage / cookie)
-    // maka cukup arahkan frontend untuk menghapusnya.
-    res.status(200).json({
-      message: 'Logout berhasil. Silakan hapus token di sisi klien.'
-    });
+    res.clearCookie("token", { path: "/" }); // hapus cookie JWT
+    return res.status(200).json({ message: "Logout berhasil" });
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ message: 'Terjadi kesalahan saat logout.' });
+    return res.status(500).json({ message: 'Terjadi kesalahan saat logout.' });
   }
 };
+
 
 /**
  * CEK STATUS LOGIN

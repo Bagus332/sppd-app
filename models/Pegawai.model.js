@@ -5,7 +5,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db.config'); 
 
 // Definisi model Pegawai
-const Pegawai = sequelize.define('pegawai', {
+const Pegawai = sequelize.define('Pegawai', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,

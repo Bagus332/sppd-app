@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
 });
 
 //  route pegawai
-app.use('/api', pegawaiRoutes);
+app.use('/api/pegawai', pegawaiRoutes);
 
 // Route surat tugas & SPD
 app.use('/api/surat', suratRoutes);

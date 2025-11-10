@@ -1,42 +1,20 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext'; // tambahkan ini
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
-  const router = useRouter();
-  const { logout } = useAuth(); // ambil fungsi logout dari context
-
-  useEffect(() => {
-    if (!router) {
-      console.error("Router belum siap");
-    }
-  }, [router]);
-
-  const handleLogout = async () => {
-    console.log("Logout diklik");
-
-    const confirmLogout = window.confirm("Apakah Anda yakin ingin logout?");
-    if (!confirmLogout) return;
-
-    try {
-      await logout(); // panggil logout dari context (ini yang penting)
-      console.log("Berhasil logout, diarahkan ke halaman login...");
-    } catch (error) {
-      console.error("Gagal logout:", error);
-      alert("Terjadi kesalahan saat logout, silakan coba lagi.");
-    }
-  };
+  const { logout } = useAuth(); // pakai fungsi logout dari AuthContext
 
   return (
     <header className="bg-white/70 backdrop-blur-md sticky top-0 z-50 border-b border-neutral-200 shadow-sm">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex w-full items-center justify-between py-4">
+          {/* Kiri: Logo & Navigasi */}
           <div className="flex items-center gap-12">
             <span className="text-2xl font-bold bg-gradient-to-r from-[#5c7a54] to-[#6b8c62] bg-clip-text text-transparent">
               SPPD
             </span>
+
             <div className="hidden space-x-8 lg:flex items-center">
               <a
                 href="#"
@@ -53,6 +31,7 @@ export default function Header() {
             </div>
           </div>
 
+          {/* Kanan: Info User & Logout */}
           <div className="flex items-center gap-4">
             <span className="inline-flex gap-2">
               <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#5c7a54] to-[#6b8c62] rounded-lg shadow-sm">
@@ -71,8 +50,15 @@ export default function Header() {
                 Administrator
               </span>
 
+              {/* Tombol Logout */}
               <button
-                onClick={handleLogout}
+                onClick={async () => {
+                  try {
+                    await logout(); // panggil dari AuthContext
+                  } catch (err) {
+                    console.error("Logout gagal:", err);
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#c66756] to-[#d17665] rounded-lg shadow-sm hover:from-[#b35647] hover:to-[#c66756] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
               >
                 <svg
