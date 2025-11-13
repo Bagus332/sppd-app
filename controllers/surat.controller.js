@@ -232,3 +232,57 @@ exports.perjalananDinas = async (req, res) => {
     });
   }
 };
+
+/**
+ * Ambil semua surat dari Perjalanan Dinas
+ */
+exports.getAllSurat = async (req, res) => {
+  try {
+    const surats = await PerjalananDinas.findAll({
+      order: [['createdAt', 'DESC']]
+    });
+    return res.status(200).json(surats);
+  } catch (err) {
+    console.error('❌ Error get all surat:', err);
+    return res.status(500).json({ message: 'Gagal mengambil data surat' });
+  }
+};
+
+/**
+ * Ambil surat berdasarkan ID dari Perjalanan Dinas
+ */
+exports.getSuratById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const surat = await PerjalananDinas.findByPk(id);
+    
+    if (!surat) {
+      return res.status(404).json({ message: 'Surat tidak ditemukan' });
+    }
+    
+    return res.status(200).json(surat);
+  } catch (err) {
+    console.error('❌ Error get surat by ID:', err);
+    return res.status(500).json({ message: 'Gagal mengambil detail surat' });
+  }
+};
+
+/**
+ * Hapus surat dari Perjalanan Dinas
+ */
+exports.deleteSurat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const surat = await PerjalananDinas.findByPk(id);
+    
+    if (!surat) {
+      return res.status(404).json({ message: 'Surat tidak ditemukan' });
+    }
+    
+    await surat.destroy();
+    return res.status(200).json({ message: 'Surat berhasil dihapus' });
+  } catch (err) {
+    console.error('❌ Error delete surat:', err);
+    return res.status(500).json({ message: 'Gagal menghapus surat' });
+  }
+};

@@ -14,7 +14,7 @@ export default function PerjalananDinasPage() {
   useEffect(() => {
     // Jika butuh proteksi login
     if (!isAuthenticated) {
-      // router.replace('/login'); // aktifkan jika halaman ini perlu login
+      router.replace('/login'); 
     }
   }, [isAuthenticated, router]);
 
