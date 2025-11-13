@@ -92,7 +92,12 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     res.clearCookie("token", { path: "/" }); // hapus cookie JWT
-    return res.status(200).json({ message: "Logout berhasil" });
+    
+    // Kirim response dengan status sukses dan redirect URL
+    return res.status(200).json({ 
+      message: "Logout berhasil",
+      redirectTo: "/login" // Frontend akan handle redirect
+    });
   } catch (error) {
     console.error('Logout error:', error);
     return res.status(500).json({ message: 'Terjadi kesalahan saat logout.' });

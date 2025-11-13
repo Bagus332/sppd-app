@@ -4,8 +4,8 @@ const Docxtemplater = require('docxtemplater');
 const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
-const suratController = require('../controllers/surat.controller');
-const db = require('../db.config');
+const { sequelize } = require('../db.config');
+const PerjalananDinas = require('../models/PerjalananDinas.model');
 
 // ===========================
 // Fungsi bantu: format pegawai
@@ -174,29 +174,61 @@ exports.createSPD = async (req, res) => {
 // ===========================
 exports.perjalananDinas = async (req, res) => {
   try {
-    const data = req.body;
+    const { 
+      pegawai_list, 
+      pengikut_list, 
+      nomor, 
+      dasar_dipa, 
+      tanggal_surat, 
+      nama_dekan,
+      maksud_dinas,
+      tgl_berangkat,
+      tgl_kembali,
+      spd_nomor,
+      ppk_name,
+      ppk_nip,
+      pangkat_gol,
+      jabatan_instansi,
+      tingkat_biaya,
+      alat_angkut,
+      tempat_berangkat,
+      tempat_tujuan,
+      lama_hari
+    } = req.body;
 
-    // Simpan ke tabel menggunakan Sequelize Model
-    await PerjalananDinas.create({
-      nomor: data.spd_nomor || '', // sesuaikan dengan field di model
-      menimbang_kegiatan: data.menimbang_kegiatan || '-',
-      dasar_dipa: data.dasar_dipa || '',
-      dasar_dipa_tanggal: data.dasar_dipa_tanggal || null,
-      pegawai_data: JSON.stringify(data.pegawai_list || []),
-      tujuan_kegiatan: data.maksud_dinas || '',
-      tanggal_mulai: data.tgl_berangkat || null,
-      tanggal_selesai: data.tgl_kembali || null,
-      tanggal_surat: data.tanggal_surat || null,
-      nama_dekan: data.nama_dekan || '',
+    // Simpan ke database
+    const perjalanan = await PerjalananDinas.create({
+      pegawai_list: pegawai_list || [],
+      pengikut_list: pengikut_list || [],
+      nomor,
+      dasar_dipa,
+      tanggal_surat,
+      nama_dekan,
+      maksud_dinas,
+      tgl_berangkat,
+      tgl_kembali,
+      spd_nomor,
+      ppk_name,
+      ppk_nip,
+      pangkat_gol,
+      jabatan_instansi,
+      tingkat_biaya,
+      alat_angkut,
+      tempat_berangkat,
+      tempat_tujuan,
+      lama_hari
     });
 
-    res.status(200).json({ message: 'Data perjalanan dinas berhasil disimpan!' });
+    return res.status(201).json({ 
+      message: 'Data perjalanan dinas berhasil disimpan',
+      data: perjalanan 
+    });
 
   } catch (err) {
-    console.error('DB Error:', err);
-    res.status(500).json({
-      message: 'Gagal menyimpan data perjalanan dinas',
-      error: err.message,
+    console.error('❌ Error simpan perjalanan dinas:', err);
+    return res.status(500).json({ 
+      message: 'Gagal menyimpan data perjalanan dinas', 
+      error: err.message 
     });
   }
 };
