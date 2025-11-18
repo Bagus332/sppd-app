@@ -1,181 +1,234 @@
-   'use client';
+// frontend/app/daftar-surat/page.tsx
+'use client';
 
-   import { useEffect, useState } from 'react';
-   import { useRouter } from 'next/navigation'; // Untuk navigasi di Next.js App Router
-   import Header from '../components/Header';
-   import { FileText, Download, Trash2, Eye, ArrowLeft } from 'lucide-react'; // Pastikan lucide-react terinstal
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Header from '../components/Header';
+import { FileText, Trash2, Eye, ArrowLeft, FileDown } from 'lucide-react';
 
-   interface Surat {
-     id: number;
-     nomor: string;
-     nama_pegawai: string;
-     tujuan_kegiatan: string;
-     tanggal_mulai: string;
-     tanggal_selesai: string;
-     createdAt: string;
-   }
+interface Surat {
+  id: number;
+  nomor: string;
+  spd_nomor: string; // Pastikan field ini ada
+  nama_pegawai: string; // Atau ambil dari array pegawai_list[0]
+  tujuan_kegiatan: string;
+  maksud_dinas: string;
+  tanggal_mulai: string;
+  tgl_berangkat: string;
+  tanggal_selesai: string;
+  tgl_kembali: string;
+  createdAt: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pegawai_list: any[];
+}
 
-   export default function DaftarSurat() {
-     const [surats, setSurats] = useState<Surat[]>([]);
-     const [loading, setLoading] = useState(true);
-     const [error, setError] = useState('');
-     const router = useRouter(); // Hook untuk navigasi
+export default function DaftarSurat() {
+  const [surats, setSurats] = useState<Surat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [downloading, setDownloading] = useState<number | null>(null); // State untuk loading download
+  const router = useRouter();
 
-     useEffect(() => {
-       fetchSurats();
-     }, []);
+  useEffect(() => {
+    fetchSurats();
+  }, []);
 
-     const fetchSurats = async () => {
-       try {
-         setLoading(true);
-         const response = await fetch('http://localhost:8080/api/surat', {
-           credentials: 'include',
-         });
+  const fetchSurats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:8080/api/surat', {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Gagal mengambil data surat');
+      const data = await response.json();
+      setSurats(data || []);
+    } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-         if (!response.ok) {
-           throw new Error('Gagal mengambil data surat');
-         }
+  // Fungsi Generik untuk Download File
+  const handleDownload = async (id: number, type: 'tugas' | 'spd') => {
+    try {
+      setDownloading(id);
+      const endpoint = `http://localhost:8080/api/surat/${id}/download/${type}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-         const data = await response.json();
-         setSurats(data || []);
-       } catch (err: unknown) {
-         if (err instanceof Error) {
-           setError(err.message);
-         } else {
-           setError('Terjadi kesalahan saat mengambil data');
-         }
-       } finally {
-         setLoading(false);
-       }
-     };
+      if (!response.ok) throw new Error('Gagal mengunduh file');
 
-     const handleDelete = async (id: number) => {
-       if (!confirm('Apakah Anda yakin ingin menghapus surat ini?')) return;
+      // Proses Blob untuk download file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Ambil nama file dari header jika ada, atau default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = type === 'tugas' ? 'Surat_Tugas.docx' : 'SPD.docx';
+      if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(contentDisposition);
+        if (matches != null && matches[1]) { 
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-       try {
-         const response = await fetch(`http://localhost:8080/api/surat/${id}`, {
-           method: 'DELETE',
-           credentials: 'include',
-         });
+    } catch (err) {
+      console.error(err);
+      alert(`Gagal mengunduh ${type === 'tugas' ? 'Surat Tugas' : 'SPD'}`);
+    } finally {
+      setDownloading(null);
+    }
+  };
 
-         if (!response.ok) {
-           throw new Error('Gagal menghapus surat');
-         }
+  const handleDelete = async (id: number) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus surat ini?')) return;
+    try {
+      await fetch(`http://localhost:8080/api/surat/${id}`, { method: 'DELETE' });
+      setSurats(surats.filter(s => s.id !== id));
+    } catch (err) {
+      alert('Gagal menghapus surat');
+    }
+  };
 
-         setSurats(surats.filter(s => s.id !== id));
-       } catch (err) {
-         console.error('Delete error:', err);
-         alert('Gagal menghapus surat');
-       }
-     };
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+  };
 
-     const formatDate = (dateString: string) => {
-       return new Date(dateString).toLocaleDateString('id-ID', {
-         day: 'numeric',
-         month: 'long',
-         year: 'numeric'
-       });
-     };
+  // Helper untuk menampilkan nama pegawai (jika array)
+  const getNamaPegawai = (surat: Surat) => {
+    if (surat.pegawai_list && surat.pegawai_list.length > 0) {
+        if (surat.pegawai_list.length === 1) {
+            return surat.pegawai_list[0].nama_pegawai;
+        } else {
+            return `${surat.pegawai_list[0].nama_pegawai} (+${surat.pegawai_list.length - 1} Lainnya)`;
+        }
+    }
+    return '-';
+  }
 
-     return (
-       <div className="min-h-screen bg-gray-50">
-         <Header />
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
 
-         <main className="px-6 py-10">
-           {/* Tombol Kembali - Ditambahkan di sini, di atas header utama */}
-           <div className="mb-6">
-             <button
-               onClick={() => router.back()} // Kembali ke halaman sebelumnya
-               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
-               title="Kembali ke halaman sebelumnya"
-             >
-               <ArrowLeft size={18} />
-               Kembali
-             </button>
-           </div>
+      <main className="px-6 py-10">
+        <div className="mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={18} /> Kembali
+          </button>
+        </div>
 
-           {/* Header */}
-           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
-             <h1 className="text-3xl font-bold mb-2">Daftar Surat Tugas & SPD</h1>
-             <p className="text-blue-100">Kelola semua surat yang telah dibuat</p>
-           </div>
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
+          <h1 className="text-3xl font-bold mb-2">Daftar Surat Tugas & SPD</h1>
+          <p className="text-blue-100">Kelola dan unduh dokumen perjalanan dinas</p>
+        </div>
 
-           {/* Loading State */}
-           {loading && (
-             <div className="flex justify-center items-center py-12">
-               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-             </div>
-           )}
+        {loading && (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        )}
 
-           {/* Error State */}
-           {error && (
-             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-               {error}
-             </div>
-           )}
+        {!loading && surats.length > 0 && (
+          <div className="overflow-x-auto bg-white rounded-xl shadow-md pb-4">
+            <table className="w-full">
+              <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left font-semibold">No. Surat</th>
+                  <th className="px-6 py-4 text-left font-semibold">Pegawai</th>
+                  <th className="px-6 py-4 text-left font-semibold">Tujuan</th>
+                  <th className="px-6 py-4 text-left font-semibold">Tanggal</th>
+                  <th className="px-6 py-4 text-center font-semibold">Download</th>
+                  <th className="px-6 py-4 text-center font-semibold">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {surats.map((surat) => (
+                  <tr key={surat.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                        <div>{surat.nomor}</div>
+                        <div className="text-xs text-gray-400 mt-1">{surat.spd_nomor}</div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 font-medium">
+                        {getNamaPegawai(surat)}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 text-sm max-w-xs truncate">
+                        {surat.maksud_dinas || surat.tujuan_kegiatan}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 text-sm">
+                      {formatDate(surat.tgl_berangkat || surat.tanggal_mulai)} s.d <br/>
+                      {formatDate(surat.tgl_kembali || surat.tanggal_selesai)}
+                    </td>
+                    
+                    {/* Kolom Tombol Generate/Download */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-2 items-center">
+                        <button
+                          onClick={() => handleDownload(surat.id, 'tugas')}
+                          disabled={downloading === surat.id}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold transition-colors w-full justify-center border border-blue-200"
+                        >
+                           {downloading === surat.id ? (
+                             <span className="animate-spin h-3 w-3 border-2 border-blue-600 rounded-full border-t-transparent"></span>
+                           ) : <FileText size={14} />}
+                           Surat Tugas
+                        </button>
+                        <button
+                          onClick={() => handleDownload(surat.id, 'spd')}
+                          disabled={downloading === surat.id}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded text-xs font-semibold transition-colors w-full justify-center border border-orange-200"
+                        >
+                           {downloading === surat.id ? (
+                             <span className="animate-spin h-3 w-3 border-2 border-orange-600 rounded-full border-t-transparent"></span>
+                           ) : <FileDown size={14} />}
+                           SPD
+                        </button>
+                      </div>
+                    </td>
 
-           {/* Empty State */}
-           {!loading && surats.length === 0 && (
-             <div className="text-center py-12">
-               <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-               <p className="text-gray-500 text-lg">Belum ada surat yang dibuat</p>
-               <p className="text-gray-400">Mulai dengan membuat perjalanan dinas baru</p>
-             </div>
-           )}
-
-           {/* Table */}
-           {!loading && surats.length > 0 && (
-             <div className="overflow-x-auto bg-white rounded-xl shadow-md">
-               <table className="w-full">
-                 <thead className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-                   <tr>
-                     <th className="px-6 py-4 text-left font-semibold">No. Surat</th>
-                     <th className="px-6 py-4 text-left font-semibold">Nama Pegawai</th>
-                     <th className="px-6 py-4 text-left font-semibold">Tujuan Kegiatan</th>
-                     <th className="px-6 py-4 text-left font-semibold">Tanggal Mulai</th>
-                     <th className="px-6 py-4 text-left font-semibold">Tanggal Selesai</th>
-                     <th className="px-6 py-4 text-left font-semibold">Dibuat Tanggal</th>
-                     <th className="px-6 py-4 text-center font-semibold">Aksi</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-200">
-                   {surats.map((surat) => (
-                     <tr key={surat.id} className="hover:bg-gray-50 transition-colors">
-                       <td className="px-6 py-4 font-medium text-gray-900">{surat.nomor}</td>
-                       <td className="px-6 py-4 text-gray-700">{surat.nama_pegawai}</td>
-                       <td className="px-6 py-4 text-gray-700">{surat.tujuan_kegiatan}</td>
-                       <td className="px-6 py-4 text-gray-700">{formatDate(surat.tanggal_mulai)}</td>
-                       <td className="px-6 py-4 text-gray-700">{formatDate(surat.tanggal_selesai)}</td>
-                       <td className="px-6 py-4 text-gray-700">{formatDate(surat.createdAt)}</td>
-                       <td className="px-6 py-4 flex justify-center gap-3">
-                         <button
-                           className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                           title="Lihat Detail"
-                         >
-                           <Eye size={18} />
-                         </button>
-                         <button
-                           className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                           title="Download"
-                         >
-                           <Download size={18} />
-                         </button>
-                         <button
-                           onClick={() => handleDelete(surat.id)}
-                           className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                           title="Hapus"
-                         >
-                           <Trash2 size={18} />
-                         </button>
-                       </td>
-                     </tr>
-                   ))}
-                 </tbody>
-               </table>
-             </div>
-           )}
-         </main>
-       </div>
-     );
-   }
-   
+                    {/* Kolom Aksi (Hapus/Lihat) */}
+                    <td className="px-6 py-4 text-center">
+                       <div className="flex justify-center gap-2">
+                        <button
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                            title="Lihat Detail"
+                        >
+                            <Eye size={18} />
+                        </button>
+                        <button
+                            onClick={() => handleDelete(surat.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            title="Hapus"
+                        >
+                            <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

@@ -1,222 +1,87 @@
 // backend/controllers/surat.controller.js
-
 const Docxtemplater = require('docxtemplater');
 const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
-const { sequelize } = require('../db.config');
 const PerjalananDinas = require('../models/PerjalananDinas.model');
 
 // ===========================
-// Fungsi bantu: format pegawai
+// 🛠️ HELPER FUNCTIONS
 // ===========================
-const formatMultiPegawaiString = (pegawaiArray) => {
-  if (!pegawaiArray || pegawaiArray.length === 0) return '';
-  return pegawaiArray
-    .map((p, i) => `${i + 1}. ${p.nama_pegawai} / NIP ${p.nip_pegawai}`)
-    .join('\n');
+
+/**
+ * Format tanggal ke format Indonesia (dd MMMM yyyy)
+ */
+const formatDate = (date) => {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 };
 
-// ===========================
-// Generate Surat Tugas
-// ===========================
-exports.createSuratTugas = async (req, res) => {
+/**
+ * Fungsi generik untuk generate dan kirim file DOCX
+ */
+const generateAndSendDocx = (res, templateName, data, outputFilename) => {
   try {
-    const { pegawai_list, nomor, dasar_dipa, tanggal_surat, nama_dekan, maksud_dinas, tgl_berangkat, tgl_kembali } = req.body;
+    const templatePath = path.resolve(__dirname, `../templates/${templateName}`);
+    
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Template ${templateName} tidak ditemukan di sistem.`);
+    }
 
-    // Load template Surat Tugas
-    const templatePath = path.resolve(__dirname, '../templates/Template Surat Tugas.docx');
     const content = fs.readFileSync(templatePath, 'binary');
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
-    // Format tanggal
-    const tglSuratFormatted = tanggal_surat
-      ? new Date(tanggal_surat).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
-    const tglBerangkatFormatted = tgl_berangkat
-      ? new Date(tgl_berangkat).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })
-      : '';
-    const tglKembaliFormatted = tgl_kembali
-      ? new Date(tgl_kembali).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })
-      : '';
-
-    // Ambil pegawai pertama dan daftar
-    const firstPegawai = pegawai_list?.[0] || {};
-    const pegawaiListString = formatMultiPegawaiString(pegawai_list);
-
-    // Set data untuk template
-    doc.setData({
-      nomor: nomor || '',
-      dasar_dipa: dasar_dipa || '',
-      nama_dekan: nama_dekan || '',
-      maksud_dinas: maksud_dinas || '',
-      tanggal_surat: tglSuratFormatted,
-      tanggal_mulai: tglBerangkatFormatted,
-      tanggal_selesai: tglKembaliFormatted,
-      // Pegawai tunggal
-      nama_pegawai: firstPegawai.nama_pegawai || '',
-      nip_pegawai: firstPegawai.nip_pegawai || '',
-      pangkat_gol: firstPegawai.pangkat_gol || '',
-      jabatan_pegawai: firstPegawai.jabatan_pegawai || '',
-      // Pegawai banyak (halaman 2)
-      pegawai_list_string: pegawaiListString,
-      pegawai_count: pegawai_list?.length || 0,
-    });
-
-    // Render dokumen
+    // Render data ke template
+    doc.setData(data);
     doc.render();
+
     const buffer = doc.getZip().generate({
       type: 'nodebuffer',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     });
 
-    // Kirim file
-    res.setHeader('Content-Disposition', `attachment; filename="Surat_Tugas_${nomor || 'TanpaNomor'}.docx"`);
+    // Set header dan kirim file
+    const safeFilename = outputFilename.replace(/[\/\\:*?"<>|]/g, '-'); // Sanitize filename
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.send(buffer);
+
   } catch (error) {
-    console.error('Surat Tugas Error:', error);
-    res.status(500).send({ message: 'Gagal membuat surat tugas', error: error.message });
+    console.error(`Error generating ${templateName}:`, error);
+    res.status(500).json({ message: 'Gagal membuat dokumen', error: error.message });
   }
 };
 
+
 // ===========================
-// Generate SPD (Form PMK 113/PMK.05/2012)
+// 🎮 MAIN CONTROLLER ACTIONS
 // ===========================
-exports.createSPD = async (req, res) => {
-  try {
-    const {
-      spd_nomor,
-      ppk_name,
-      ppk_nip,
-      pangkat_gol,
-      jabatan_instansi,
-      tingkat_biaya,
-      maksud_dinas,
-      alat_angkut,
-      tempat_berangkat,
-      tempat_tujuan,
-      lama_hari,
-      tgl_berangkat,
-      tgl_kembali,
-      pegawai_list,
-      pengikut_list,
-    } = req.body;
 
-    // Load template SPD
-    const templatePath = path.resolve(__dirname, '../templates/Form SPD FST (1).docx');
-    const content = fs.readFileSync(templatePath, 'binary');
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-
-    // Format tanggal
-    const tglDikeluarkan = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    const tglBerangkatFormatted = tgl_berangkat
-      ? new Date(tgl_berangkat).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
-    const tglKembaliFormatted = tgl_kembali
-      ? new Date(tgl_kembali).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
-
-    const firstPegawai = pegawai_list?.[0] || {};
-
-    // Format pengikut
-    const pengikutData = (pengikut_list || []).map((p) => ({
-      pengikut_nama: p.nama,
-      pengikut_tgl_lahir: p.tgl_lahir
-        ? new Date(p.tgl_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-        : '',
-      pengikut_ket: p.keterangan || '-',
-    }));
-
-    // Set data untuk template
-    doc.setData({
-      nomor: spd_nomor || '',
-      ppk_name: ppk_name || '',
-      ppk_nip: ppk_nip || '',
-      pegawai_nama_nip: `${firstPegawai.nama_pegawai || ''} / NIP ${firstPegawai.nip_pegawai || ''}`,
-      pangkat_gol: firstPegawai.pangkat_gol || pangkat_gol || '',
-      jabatan_instansi: firstPegawai.jabatan_pegawai || jabatan_instansi || '',
-      tingkat_biaya: tingkat_biaya || 'DIPA FST',
-      maksud_dinas: maksud_dinas || '',
-      alat_angkut: alat_angkut || '',
-      tempat_berangkat: tempat_berangkat || 'Padang',
-      tempat_tujuan: tempat_tujuan || '',
-      lama_hari: lama_hari || '',
-      tgl_berangkat: tglBerangkatFormatted,
-      tgl_kembali: tglKembaliFormatted,
-      tgl_dikeluarkan: tglDikeluarkan,
-      pengikut_loop: pengikutData,
-    });
-
-    // Render dokumen
-    doc.render();
-    const buffer = doc.getZip().generate({
-      type: 'nodebuffer',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
-
-
-
-    // Kirim file
-    res.setHeader('Content-Disposition', `attachment; filename="SPD_${spd_nomor || 'TanpaNomor'}.docx"`);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.send(buffer);
-  } catch (error) {
-    console.error('SPD Controller Error:', error);
-    res.status(500).send({ message: 'Gagal membuat dokumen SPD', error: error.message });
-  }
-};
- 
-// ===========================
-// Simpan Data Perjalanan Dinas
-// ===========================
+/**
+ * Simpan Data Perjalanan Dinas (Create)
+ */
 exports.perjalananDinas = async (req, res) => {
   try {
+    // Destructure untuk keamanan input (whitelist)
     const { 
-      pegawai_list, 
-      pengikut_list, 
-      nomor, 
-      dasar_dipa, 
-      tanggal_surat, 
-      nama_dekan,
-      maksud_dinas,
-      tgl_berangkat,
-      tgl_kembali,
-      spd_nomor,
-      ppk_name,
-      ppk_nip,
-      pangkat_gol,
-      jabatan_instansi,
-      tingkat_biaya,
-      alat_angkut,
-      tempat_berangkat,
-      tempat_tujuan,
-      lama_hari
+      pegawai_list, pengikut_list, nomor, dasar_dipa, tanggal_surat, nama_dekan,
+      maksud_dinas, tgl_berangkat, tgl_kembali, spd_nomor, ppk_name, ppk_nip,
+      pangkat_gol, jabatan_instansi, tingkat_biaya, alat_angkut,
+      tempat_berangkat, tempat_tujuan, lama_hari
     } = req.body;
 
-    // Simpan ke database
     const perjalanan = await PerjalananDinas.create({
       pegawai_list: pegawai_list || [],
       pengikut_list: pengikut_list || [],
-      nomor,
-      dasar_dipa,
-      tanggal_surat,
-      nama_dekan,
-      maksud_dinas,
-      tgl_berangkat,
-      tgl_kembali,
-      spd_nomor,
-      ppk_name,
-      ppk_nip,
-      pangkat_gol,
-      jabatan_instansi,
-      tingkat_biaya,
-      alat_angkut,
-      tempat_berangkat,
-      tempat_tujuan,
-      lama_hari
+      nomor, dasar_dipa, tanggal_surat, nama_dekan, maksud_dinas,
+      tgl_berangkat, tgl_kembali, spd_nomor, ppk_name, ppk_nip,
+      pangkat_gol, jabatan_instansi, tingkat_biaya, alat_angkut,
+      tempat_berangkat, tempat_tujuan, lama_hari
     });
 
     return res.status(201).json({ 
@@ -226,63 +91,145 @@ exports.perjalananDinas = async (req, res) => {
 
   } catch (err) {
     console.error('❌ Error simpan perjalanan dinas:', err);
-    return res.status(500).json({ 
-      message: 'Gagal menyimpan data perjalanan dinas', 
-      error: err.message 
-    });
+    return res.status(500).json({ message: 'Gagal menyimpan data', error: err.message });
   }
 };
 
 /**
- * Ambil semua surat dari Perjalanan Dinas
+ * Generate & Download Surat Tugas by ID
+ */
+exports.downloadSuratTugas = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const surat = await PerjalananDinas.findByPk(id);
+
+    if (!surat) return res.status(404).json({ message: 'Data surat tidak ditemukan' });
+
+    const pegawaiList = surat.pegawai_list || [];
+    const isMulti = pegawaiList.length > 1;
+
+    // Siapkan Data untuk Template
+    const data = {
+      nomor: surat.nomor || '',
+      menimbang_kegiatan: surat.maksud_dinas || '',
+      dasar_dipa: surat.dasar_dipa || '',
+      dasar_dipa_tanggal: '...', // Opsional: Bisa ambil dari DB jika ada kolomnya
+      tujuan_kegiatan: surat.maksud_dinas || '',
+      tanggal_mulai: formatDate(surat.tgl_berangkat),
+      tanggal_selesai: formatDate(surat.tgl_kembali),
+      tanggal_surat: formatDate(surat.tanggal_surat),
+      nama_dekan: surat.nama_dekan || '',
+    };
+
+    // Logika pemilihan template
+    if (isMulti) {
+      // Template Multi Pegawai
+      data.pegawai_list_string = pegawaiList
+        .map((p, i) => `${i + 1}. ${p.nama_pegawai} / NIP ${p.nip_pegawai}`)
+        .join('\n');
+      
+      generateAndSendDocx(res, 'Template Surat Tugas (2).docx', data, `Surat_Tugas_${surat.nomor}.docx`);
+    } else {
+      // Template Single Pegawai
+      const p = pegawaiList[0] || {};
+      data.nama_pegawai = p.nama_pegawai || '';
+      data.nip_pegawai = p.nip_pegawai || '';
+      data.pangkat_gol = p.pangkat_gol || '';
+      data.jabatan_pegawai = p.jabatan_pegawai || '';
+
+      generateAndSendDocx(res, 'Template Surat Tugas (1).docx', data, `Surat_Tugas_${surat.nomor}.docx`);
+    }
+
+  } catch (error) {
+    console.error('Download Tugas Error:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: error.message });
+  }
+};
+
+/**
+ * Generate & Download SPD by ID
+ */
+exports.downloadSPD = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const surat = await PerjalananDinas.findByPk(id);
+
+    if (!surat) return res.status(404).json({ message: 'Data surat tidak ditemukan' });
+
+    const firstPegawai = (surat.pegawai_list && surat.pegawai_list[0]) || {};
+    
+    // Mapping data pengikut
+    const pengikutData = (surat.pengikut_list || []).map((p) => ({
+      pengikut_nama: p.nama,
+      pengikut_tgl_lahir: formatDate(p.tgl_lahir),
+      pengikut_ket: p.keterangan || '-',
+    }));
+
+    const data = {
+      spd_nomor: surat.spd_nomor || '',
+      ppk_name: surat.ppk_name || '',
+      ppk_nip: surat.ppk_nip || '',
+      pegawai_nama_nip: `${firstPegawai.nama_pegawai || ''} / NIP ${firstPegawai.nip_pegawai || ''}`,
+      pangkat_gol: firstPegawai.pangkat_gol || surat.pangkat_gol || '',
+      jabatan_instansi: firstPegawai.jabatan_pegawai || surat.jabatan_instansi || '',
+      tingkat_biaya: surat.tingkat_biaya || 'DIPA FST',
+      maksud_dinas: surat.maksud_dinas || '',
+      alat_angkut: surat.alat_angkut || '',
+      tempat_berangkat: surat.tempat_berangkat || 'Padang',
+      tempat_tujuan: surat.tempat_tujuan || '',
+      lama_hari: surat.lama_hari || '',
+      tgl_berangkat: formatDate(surat.tgl_berangkat),
+      tgl_kembali: formatDate(surat.tgl_kembali),
+      tgl_dikeluarkan: formatDate(surat.tanggal_surat || new Date()),
+      pengikut_loop: pengikutData,
+    };
+
+    generateAndSendDocx(res, 'Form SPD FST (1).docx', data, `SPD_${surat.spd_nomor || 'Draft'}.docx`);
+
+  } catch (error) {
+    console.error('Download SPD Error:', error);
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: error.message });
+  }
+};
+
+/**
+ * Ambil Semua Surat (Read All)
  */
 exports.getAllSurat = async (req, res) => {
   try {
     const surats = await PerjalananDinas.findAll({
       order: [['createdAt', 'DESC']]
     });
-    return res.status(200).json(surats);
+    res.status(200).json(surats);
   } catch (err) {
-    console.error('❌ Error get all surat:', err);
-    return res.status(500).json({ message: 'Gagal mengambil data surat' });
+    res.status(500).json({ message: 'Gagal mengambil data surat' });
   }
 };
 
 /**
- * Ambil surat berdasarkan ID dari Perjalanan Dinas
+ * Ambil Surat by ID (Read One)
  */
 exports.getSuratById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const surat = await PerjalananDinas.findByPk(id);
-    
-    if (!surat) {
-      return res.status(404).json({ message: 'Surat tidak ditemukan' });
-    }
-    
-    return res.status(200).json(surat);
+    const surat = await PerjalananDinas.findByPk(req.params.id);
+    if (!surat) return res.status(404).json({ message: 'Surat tidak ditemukan' });
+    res.status(200).json(surat);
   } catch (err) {
-    console.error('❌ Error get surat by ID:', err);
-    return res.status(500).json({ message: 'Gagal mengambil detail surat' });
+    res.status(500).json({ message: 'Gagal mengambil detail surat' });
   }
 };
 
 /**
- * Hapus surat dari Perjalanan Dinas
+ * Hapus Surat (Delete)
  */
 exports.deleteSurat = async (req, res) => {
   try {
-    const { id } = req.params;
-    const surat = await PerjalananDinas.findByPk(id);
-    
-    if (!surat) {
-      return res.status(404).json({ message: 'Surat tidak ditemukan' });
-    }
+    const surat = await PerjalananDinas.findByPk(req.params.id);
+    if (!surat) return res.status(404).json({ message: 'Surat tidak ditemukan' });
     
     await surat.destroy();
-    return res.status(200).json({ message: 'Surat berhasil dihapus' });
+    res.status(200).json({ message: 'Surat berhasil dihapus' });
   } catch (err) {
-    console.error('❌ Error delete surat:', err);
-    return res.status(500).json({ message: 'Gagal menghapus surat' });
+    res.status(500).json({ message: 'Gagal menghapus surat' });
   }
 };
