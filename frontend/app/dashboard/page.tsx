@@ -45,7 +45,7 @@ export default function Dashboard() {
 
       <main className="px-6 py-10">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-lg p-8 mb-10">
+        <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
           <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
           <p className="text-green-100 text-sm">
             Sistem Pembuatan Surat Perjalanan Dinas Terpadu
