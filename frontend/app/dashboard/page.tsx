@@ -3,10 +3,30 @@
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { useAuth } from "../contexts/AuthContext";
-import { FileText, Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
+
+  // 🔥 State untuk data statistik (dinamis dari backend)
+  const [totalPerjalanan, setTotalPerjalanan] = useState(0);
+  const [totalSPD, setTotalSPD] = useState(0);
+  const [totalPegawai, setTotalPegawai] = useState(0);
+  const [totalSelesai, setTotalSelesai] = useState(0);
+
+  // 🔥 Ambil data dari backend (contoh untuk perjalanan)
+  useEffect(() => {
+    fetch("http://localhost:8080/api/perjalanan/count")
+      .then((res) => res.json())
+      .then((data) => setTotalPerjalanan(data.total))
+      .catch((err) => console.error("Error fetch perjalanan:", err));
+
+    fetch("http://localhost:8080/api/pegawai/count/all")
+      .then((res) => res.json())
+      .then((data) => setTotalPegawai(data.total))
+      .catch((err) => console.error("Error fetch pegawai:", err));
+  }, []);
 
   const menuItems = [
     {
@@ -32,18 +52,19 @@ export default function Dashboard() {
     },
   ];
 
+  // 🔥 Ganti value stat menjadi dari state, bukan angka statis
   const stats = [
-    { label: 'Total Perjalanan Dinas', value: 124, color: 'text-green-600' },
-    { label: 'Total SPD', value: 87, color: 'text-emerald-600' },
-    { label: 'Data Pegawai', value: 42, color: 'text-lime-600' },
-    { label: 'Surat Selesai', value: 93, color: 'text-teal-600' },
-  ];
+  { label: 'Total Perjalanan Dinas', value: totalPerjalanan, color: 'text-green-600' },
+  { label: 'Data Pegawai', value: totalPegawai, color: 'text-lime-600' },
+];
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
       <main className="px-6 py-10">
+
         {/* Header Section */}
         <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
           <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
@@ -53,18 +74,19 @@ export default function Dashboard() {
         </div>
 
         {/* Statistik */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 text-center border border-gray-100"
-            >
-              <BarChart3 size={28} className={`${stat.color} mx-auto mb-3`} />
-              <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
-              <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10 px-2 w-full">
+        {stats.map((stat, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 text-center border border-gray-300"
+          >
+            <BarChart3 size={28} className={`${stat.color} mx-auto mb-3`} />
+            <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
+            <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
 
         {/* Menu Interaktif */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">

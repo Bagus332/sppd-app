@@ -9,6 +9,8 @@ const { createInitialAdmin } = require('./controllers/auth.controller');
 const suratRoutes = require('./routes/surat.routes');
 const authRoutes = require('./routes/auth.routes');
 const pegawaiRoutes = require('./routes/pegawai.routes');
+const perjalananRoutes = require("./routes/perjalanan.routes");
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -61,6 +63,9 @@ app.use('/api/surat', suratRoutes);
 
 // Route autentikasi (register, login, logout)
 app.use('/api/auth', authRoutes);
+
+app.use("/api/perjalanan", perjalananRoutes);
+
 
 // =====================================================
 // 🗄️ KONEKSI DATABASE DAN MENJALANKAN SERVER
