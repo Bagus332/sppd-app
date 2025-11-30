@@ -3,15 +3,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '../components/Header';
 import { FileText, Trash2, Eye, ArrowLeft, FileDown } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 interface Surat {
   id: number;
   nomor: string;
-  spd_nomor: string; // Pastikan field ini ada
-  nama_pegawai: string; // Atau ambil dari array pegawai_list[0]
+  spd_nomor: string;
+  nama_pegawai: string;
   tujuan_kegiatan: string;
   maksud_dinas: string;
   tanggal_mulai: string;
@@ -27,7 +26,7 @@ export default function DaftarSurat() {
   const [surats, setSurats] = useState<Surat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [downloading, setDownloading] = useState<number | null>(null); // State untuk loading download
+  const [downloading, setDownloading] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,32 +45,19 @@ export default function DaftarSurat() {
     }
   };
 
-  // Fungsi Generik untuk Download File
   const handleDownload = async (id: number, type: 'tugas' | 'spd') => {
     try {
       setDownloading(id);
-      
       const blob = await apiClient.downloadFile(`/api/surat/${id}/download/${type}`);
-
-      // Proses Blob untuk download file
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      
-      // Ambil nama file dari header jika ada, atau default
-      // Note: apiClient.downloadFile returns a Blob, headers are not directly accessible here easily unless we change downloadFile to return response.
-      // However, for now let's use a default name or try to improve downloadFile later.
-      // But wait, the previous code used response.headers.
-      // Let's stick to a simple filename for now or assume the user is okay with default names if we can't get headers.
-      // Actually, let's just use a hardcoded name based on type for simplicity as apiClient hides the response.
       let filename = type === 'tugas' ? 'Surat_Tugas.docx' : 'SPD.docx';
-      
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-
     } catch (err) {
       console.error(err);
       alert(`Gagal mengunduh ${type === 'tugas' ? 'Surat Tugas' : 'SPD'}`);
@@ -97,7 +83,6 @@ export default function DaftarSurat() {
     });
   };
 
-  // Helper untuk menampilkan nama pegawai (jika array)
   const getNamaPegawai = (surat: Surat) => {
     if (surat.pegawai_list && surat.pegawai_list.length > 0) {
         if (surat.pegawai_list.length === 1) {
@@ -107,13 +92,11 @@ export default function DaftarSurat() {
         }
     }
     return '-';
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="px-6 py-10">
+    <div className="min-h-screen bg-gray-50/50">
+      <main className="p-6">
         <div className="mb-6">
           <button
             onClick={() => router.back()}
@@ -123,21 +106,21 @@ export default function DaftarSurat() {
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
-          <h1 className="text-3xl font-bold mb-2">Daftar Surat Tugas & SPD</h1>
-          <p className="text-blue-100">Kelola dan unduh dokumen perjalanan dinas</p>
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-8 mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-[#5c7a54]">Daftar Surat Tugas & SPD</h1>
+          <p className="text-neutral-500">Kelola dan unduh dokumen perjalanan dinas yang telah dibuat.</p>
         </div>
 
         {loading && (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5c7a54]"></div>
           </div>
         )}
 
         {!loading && surats.length > 0 && (
-          <div className="overflow-x-auto bg-white rounded-xl shadow-md pb-4">
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-neutral-200 pb-4">
             <table className="w-full">
-              <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
+              <thead className="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                 <tr>
                   <th className="px-6 py-4 text-left font-semibold">No. Surat</th>
                   <th className="px-6 py-4 text-left font-semibold">Pegawai</th>
@@ -147,25 +130,24 @@ export default function DaftarSurat() {
                   <th className="px-6 py-4 text-center font-semibold">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-neutral-100">
                 {surats.map((surat) => (
-                  <tr key={surat.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                  <tr key={surat.id} className="hover:bg-neutral-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-neutral-900">
                         <div>{surat.nomor}</div>
-                        <div className="text-xs text-gray-400 mt-1">{surat.spd_nomor}</div>
+                        <div className="text-xs text-neutral-400 mt-1">{surat.spd_nomor}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-700 font-medium">
+                    <td className="px-6 py-4 text-neutral-700 font-medium">
                         {getNamaPegawai(surat)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700 text-sm max-w-xs truncate">
+                    <td className="px-6 py-4 text-neutral-700 text-sm max-w-xs truncate">
                         {surat.maksud_dinas || surat.tujuan_kegiatan}
                     </td>
-                    <td className="px-6 py-4 text-gray-700 text-sm">
+                    <td className="px-6 py-4 text-neutral-700 text-sm">
                       {formatDate(surat.tgl_berangkat || surat.tanggal_mulai)} s.d <br/>
                       {formatDate(surat.tgl_kembali || surat.tanggal_selesai)}
                     </td>
                     
-                    {/* Kolom Tombol Generate/Download */}
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2 items-center">
                         <button
@@ -191,18 +173,17 @@ export default function DaftarSurat() {
                       </div>
                     </td>
 
-                    {/* Kolom Aksi (Hapus/Lihat) */}
                     <td className="px-6 py-4 text-center">
                        <div className="flex justify-center gap-2">
                         <button
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                            className="p-2 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                             title="Lihat Detail"
                         >
                             <Eye size={18} />
                         </button>
                         <button
                             onClick={() => handleDelete(surat.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                             title="Hapus"
                         >
                             <Trash2 size={18} />

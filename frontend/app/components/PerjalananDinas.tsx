@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { Plus, X, Upload, UserCheck } from 'lucide-react';
+import useSWR from 'swr';
 import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 // Tipe data untuk Pegawai dari Database
@@ -49,8 +50,6 @@ type FormSuratGabunganData = {
 export default function PerjalananDinas() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  
-  const [dbPegawai, setDbPegawai] = useState<PegawaiDB[]>([]);
 
   const { register, control, handleSubmit, reset, setValue, watch } = useForm<FormSuratGabunganData>({
     defaultValues: {
@@ -86,26 +85,21 @@ export default function PerjalananDinas() {
       }
     }
   }, [tglBerangkat, tglKembali, setValue]);
+  
+  // Menggunakan SWR untuk caching data pegawai
+  const fetcher = (url: string) => apiClient.get<PegawaiDB[] | { data: PegawaiDB[] }>(url).then(res => {
+      return Array.isArray(res) ? res : (res as any).data || [];
+  });
 
-  // 1. FETCH DATA PEGAWAI
-  useEffect(() => {
-    const fetchPegawai = async () => {
-      try {
-        const data = await apiClient.get<PegawaiDB[] | { data: PegawaiDB[] }>(API_ENDPOINTS.PEGAWAI);
-        setDbPegawai(Array.isArray(data) ? data : (data as any).data || []);
-      } catch (error) {
-        console.error("Gagal mengambil data pegawai:", error);
-      }
-    };
-    fetchPegawai();
-  }, []);
+
+  const { data: dbPegawai = [], error: pegawaiError } = useSWR(API_ENDPOINTS.PEGAWAI, fetcher);
 
   // 2. AUTO-FILL PEGAWAI (Termasuk Tanggal Lahir)
   const handleSelectPegawai = (index: number, e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
     if (!selectedId) return;
 
-    const selectedPegawai = dbPegawai.find(p => p.id.toString() === selectedId);
+    const selectedPegawai = dbPegawai.find((p: PegawaiDB) => p.id.toString() === selectedId);
 
     if (selectedPegawai) {
       setValue(`pegawai_list.${index}.nama_pegawai`, selectedPegawai.nama);
@@ -204,7 +198,7 @@ export default function PerjalananDinas() {
                       defaultValue=""
                     >
                       <option value="" disabled>-- Pilih Pegawai --</option>
-                      {dbPegawai.map((p) => (
+                      {dbPegawai.map((p: PegawaiDB) => (
                         <option key={p.id} value={p.id}>{p.nama} - {p.nip}</option>
                       ))}
                     </select>

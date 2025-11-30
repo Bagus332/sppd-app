@@ -6,9 +6,9 @@
   --black: #1a1a1a;
   --white: #ffffff;
 
-  /* Theme colors */
-  --background: var(--black);
-  --foreground: #faf9f7;
+  /* Theme colors - Light Theme Default */
+  --background: var(--white);
+  --foreground: #1a1a1a;
 
   /* Primary - Olive Green (Zaitu) */
   --zaitu-50: #f3f5f2;
@@ -41,9 +41,9 @@
   --neutral-700: #d4d4d4;
 
   /* Surface colors */
-  --surface: var(--neutral-100);
-  --surface-dark: var(--neutral-200);
-  --surface-light: var(--neutral-50);
+  --surface: var(--white);
+  --surface-dark: var(--neutral-50);
+  --surface-light: #f9fafb;
 }
 
 /* Base styles */

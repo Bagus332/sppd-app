@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, ArrowLeft } from "lucide-react";
+import { UserPlus, ArrowLeft, Save } from "lucide-react";
 import { apiClient, API_ENDPOINTS } from "@/lib/api-client";
 
 const TambahPegawai: React.FC = () => {
@@ -15,8 +15,6 @@ const TambahPegawai: React.FC = () => {
     pangkat_golongan: "",
     jabatan_instansi: "",
   });
-
-  const PEGAWAI_ENDPOINT = "http://localhost:8080/api/pegawai";
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -60,12 +58,12 @@ const TambahPegawai: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-6 md:p-10 text-gray-800">
+    <div className="min-h-screen bg-neutral-50/50 p-6">
       {/* Header Navigasi */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-6">
         <button
           onClick={() => router.push("/pegawai")}
-          className="flex items-center gap-2 text-green-700 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-xl shadow-sm transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-100 transition-colors shadow-sm"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Kembali</span>
@@ -73,14 +71,19 @@ const TambahPegawai: React.FC = () => {
       </div>
 
       {/* Card Form */}
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-green-100 hover:shadow-xl transition-shadow duration-300">
+      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
+        <div className="mb-8 border-b border-neutral-100 pb-4">
+            <h1 className="text-2xl font-bold text-[#5c7a54]">Tambah Pegawai Baru</h1>
+            <p className="text-neutral-500">Lengkapi formulir di bawah ini untuk menambahkan data pegawai baru.</p>
+        </div>
+
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {/* Input: Nama */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               Nama Lengkap
             </label>
             <input
@@ -90,13 +93,13 @@ const TambahPegawai: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="Masukkan nama lengkap"
-              className="w-full border border-green-300 bg-green-50 rounded-lg p-3 text-gray-900 placeholder-green-700/60 focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             />
           </div>
 
           {/* Input: Tanggal Lahir */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               Tanggal Lahir
             </label>
             <input
@@ -105,13 +108,13 @@ const TambahPegawai: React.FC = () => {
               value={formData.tanggal_lahir}
               onChange={handleChange}
               required
-              className="w-full border border-green-300 bg-green-50 rounded-lg p-3 text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             />
           </div>
 
           {/* Input: NIP */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               NIP
             </label>
             <input
@@ -121,13 +124,13 @@ const TambahPegawai: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="Masukkan NIP"
-              className="w-full border border-green-300 bg-green-50 rounded-lg p-3 text-gray-900 placeholder-green-700/60 focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             />
           </div>
 
           {/* ComboBox: Pangkat & Golongan */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               Pangkat dan Golongan
             </label>
             <select
@@ -135,7 +138,7 @@ const TambahPegawai: React.FC = () => {
               value={formData.pangkat_golongan}
               onChange={handleChange}
               required
-              className="w-full border border-green-300 bg-green-50 rounded-lg p-3 text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none transition cursor-pointer appearance-none bg-[url('data:image/svg+xml;utf8,<svg fill=\'%2300A86B\' height=\'20\' viewBox=\'0 0 24 24\' width=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>')] bg-[length:1.25rem_1.25rem] bg-no-repeat bg-[right_0.75rem_center]"
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             >
               <option value="">-- Pilih --</option>
               {pangkatGolonganOptions.map((option, index) => (
@@ -148,7 +151,7 @@ const TambahPegawai: React.FC = () => {
 
           {/* Input: Jabatan Instansi */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               Jabatan / Instansi
             </label>
             <input
@@ -158,17 +161,17 @@ const TambahPegawai: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="Contoh: Staf Keuangan - UIN Imam Bonjol Padang"
-              className="w-full border border-green-300 bg-green-50 rounded-lg p-3 text-gray-900 placeholder-green-700/60 focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             />
           </div>
 
           {/* Tombol Simpan */}
-          <div className="md:col-span-2 flex justify-end mt-4">
+          <div className="md:col-span-2 flex justify-end mt-6 pt-6 border-t border-neutral-100">
             <button
               type="submit"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-md transition-all duration-200"
+              className="flex items-center gap-2 bg-[#5c7a54] hover:bg-[#4a6344] text-white px-6 py-3 rounded-lg shadow-sm transition-all duration-200 font-medium"
             >
-              <UserPlus className="w-4 h-4" />
+              <Save className="w-5 h-5" />
               Simpan Data Pegawai
             </button>
           </div>

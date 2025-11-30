@@ -1,12 +1,8 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import Header from '../components/Header';
-import { useAuth } from "../contexts/AuthContext";
-import { useState, useEffect } from 'react';
-import { Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { apiClient, API_ENDPOINTS } from '../../lib/api-client';
+import { redirect } from 'next/navigation';
+import { fetchServer } from '../../lib/api-server';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BarChartIcon, PersonIcon, FileTextIcon, RocketIcon, PlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 
 interface DashboardStats {
   totalPerjalanan: number;
@@ -15,160 +11,128 @@ interface DashboardStats {
   suratSelesai: number;
 }
 
-export default function Dashboard() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
+export default async function Dashboard() {
+  let stats: DashboardStats = {
     totalPerjalanan: 0,
     totalSPD: 0,
     totalPegawai: 0,
     suratSelesai: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Only fetch if authenticated and auth check is complete
-    if (!authLoading && isAuthenticated) {
-      fetchDashboardStats();
-    } else if (!authLoading) {
-      setLoading(false);
-    }
-  }, [isAuthenticated, authLoading]);
-
-  const fetchDashboardStats = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get<{ success: boolean; data: DashboardStats }>(
-        API_ENDPOINTS.DASHBOARD_STATS
-      );
-      if (response.success) {
-        setStats(response.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error);
-      // If unauthorized, stats will remain at 0
-    } finally {
-      setLoading(false);
-    }
   };
 
-  // 🔥 State untuk data statistik (dinamis dari backend)
-  const [totalPerjalanan, setTotalPerjalanan] = useState(0);
-  const [totalSPD, setTotalSPD] = useState(0);
-  const [totalPegawai, setTotalPegawai] = useState(0);
-  const [totalSelesai, setTotalSelesai] = useState(0);
-
-  // 🔥 Ambil data dari backend (contoh untuk perjalanan)
-  useEffect(() => {
-    fetch("http://localhost:8080/api/perjalanan/count")
-      .then((res) => res.json())
-      .then((data) => setTotalPerjalanan(data.total))
-      .catch((err) => console.error("Error fetch perjalanan:", err));
-
-    fetch("http://localhost:8080/api/pegawai/count/all")
-      .then((res) => res.json())
-      .then((data) => setTotalPegawai(data.total))
-      .catch((err) => console.error("Error fetch pegawai:", err));
-  }, []);
-
-  const menuItems = [
-    {
-      title: 'Buat Perjalanan Dinas',
-      description: 'Isi form gabungan untuk membuat Surat Tugas dan SPD sekaligus.',
-      icon: <Plane size={40} className="text-green-500" />,
-      action: () => router.push('/perjalanan-dinas'),
-      gradient: 'from-green-500 to-green-600',
-    },
-    {
-      title: 'Data Pegawai',
-      description: 'Lihat dan kelola data pegawai yang tersedia.',
-      icon: <Users size={40} className="text-lime-500" />,
-      action: () => router.push('/pegawai'),
-      gradient: 'from-lime-500 to-green-500',
-    },
-    {
-      title: 'Daftar Surat',
-      description: 'Lihat daftar seluruh surat tugas dan SPD yang telah dibuat.',
-      icon: <FolderOpen size={40} className="text-teal-500" />,
-      action: () => router.push('/daftar-surat'),
-      gradient: 'from-teal-500 to-green-500',
-    },
-  ];
+  try {
+    const response = await fetchServer<{ success: boolean; data: DashboardStats }>('/api/dashboard/stats');
+    stats = response.data;
+  } catch (error) {
+    if ((error as Error).message === 'Unauthorized') {
+      redirect('/login');
+    }
+    console.error('Failed to fetch dashboard stats:', error);
+    // You might want to show an error state or just empty stats
+  }
 
   const statsDisplay = [
-    { label: 'Total Perjalanan Dinas', value: stats.totalPerjalanan, color: 'text-green-600' },
-    { label: 'Total SPD', value: stats.totalSPD, color: 'text-emerald-600' },
-    { label: 'Data Pegawai', value: stats.totalPegawai, color: 'text-lime-600' },
-    { label: 'Surat Selesai', value: stats.suratSelesai, color: 'text-teal-600' },
+    { 
+      label: 'Total Perjalanan Dinas', 
+      value: stats.totalPerjalanan, 
+      icon: RocketIcon,
+      color: 'text-green-600',
+      bg: 'bg-green-100'
+    },
+    { 
+      label: 'Total SPD', 
+      value: stats.totalSPD, 
+      icon: FileTextIcon,
+      color: 'text-blue-600',
+      bg: 'bg-blue-100'
+    },
+    { 
+      label: 'Data Pegawai', 
+      value: stats.totalPegawai, 
+      icon: PersonIcon,
+      color: 'text-purple-600',
+      bg: 'bg-purple-100'
+    },
+    { 
+      label: 'Surat Selesai', 
+      value: stats.suratSelesai, 
+      icon: BarChartIcon,
+      color: 'text-orange-600',
+      bg: 'bg-orange-100'
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen bg-gray-50/50 p-8">
+      <div className="mb-8 space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard Overview</h1>
+        <p className="text-muted-foreground text-gray-500">
+          Selamat datang di Sistem Perjalanan Dinas. Berikut adalah ringkasan aktivitas terkini.
+        </p>
+      </div>
 
-      <main className="px-6 py-10">
-
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
-          <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
-          <p className="text-green-100 text-sm">
-            Sistem Pembuatan Surat Perjalanan Dinas Terpadu
-          </p>
-        </div>
-
-        {/* Statistik */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          {loading ? (
-            // Loading skeleton
-            Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow-sm p-5 text-center border border-gray-100 animate-pulse"
-              >
-                <div className="h-7 w-7 bg-gray-200 rounded mx-auto mb-3"></div>
-                <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {statsDisplay.map((stat, index) => (
+          <Card key={index} className="border-none shadow-md hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-primary">
+                {stat.label}
+              </CardTitle>
+              <div className={`p-2 rounded-full ${stat.bg}`}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
-            ))
-          ) : (
-            statsDisplay.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 text-center border border-gray-100"
-            >
-              <BarChart3 size={28} className={`${stat.color} mx-auto mb-3`} />
-              <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
-              <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
-            </div>
-          ))
-          )}
-        </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        {/* Menu Interaktif */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={item.action}
-              className="cursor-pointer bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-xl transform hover:-translate-y-1 transition-all p-6 relative overflow-hidden group"
-            >
-              <div
-                className={`absolute inset-0 opacity-10 bg-gradient-to-br ${item.gradient} rounded-2xl`}
-              ></div>
-
-              <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="mb-4">{item.icon}</div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800 mb-1 group-hover:text-gray-900">
-                    {item.title}
-                  </h2>
-                  <p className="text-sm text-gray-600">{item.description}</p>
+      <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 border-none shadow-md">
+          <CardHeader>
+            <CardTitle>Recent Activities</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Belum ada aktivitas terbaru</p>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3 border-none shadow-md">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Akses cepat ke fitur utama</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Link href="/perjalanan-dinas" className="flex items-center p-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors group">
+                <div className="p-2 bg-white rounded-full mr-4 shadow-sm group-hover:shadow">
+                    <PlusIcon className="w-5 h-5" />
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </main>
+                <div>
+                    <div className="font-semibold">Buat Surat Baru</div>
+                    <div className="text-xs text-green-600/80">Input perjalanan dinas & SPD</div>
+                </div>
+            </Link>
+            <Link href="/daftar-surat" className="flex items-center p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors group">
+                <div className="p-2 bg-white rounded-full mr-4 shadow-sm group-hover:shadow">
+                    <ArchiveIcon className="w-5 h-5" />
+                </div>
+                <div>
+                    <div className="font-semibold">Arsip Surat</div>
+                    <div className="text-xs text-blue-600/80">Lihat riwayat surat tugas</div>
+                </div>
+            </Link>
+            <Link href="/pegawai" className="flex items-center p-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors group">
+                <div className="p-2 bg-white rounded-full mr-4 shadow-sm group-hover:shadow">
+                    <PersonIcon className="w-5 h-5" />
+                </div>
+                <div>
+                    <div className="font-semibold">Data Pegawai</div>
+                    <div className="text-xs text-purple-600/80">Kelola data pegawai</div>
+                </div>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
