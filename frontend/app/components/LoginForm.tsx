@@ -43,10 +43,7 @@ export default function LoginForm() {
 
         const data = await response.json();
 
-        // Simpan token di localStorage dan cookie
-        localStorage.setItem('token', data.token);
-        document.cookie = `token=${data.token}; path=/; max-age=86400; secure; samesite=strict`;
-
+        // Backend already set httpOnly cookie, no manual storage needed
         router.push('/');
     } catch (err: unknown) {
         console.error('Login error:', err);
@@ -106,8 +103,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-8 py-3 bg-linear-to-r from-[#5c7a54] to-[#6b8c62] text-white rounded-lg shadow-lg hover:from-[#485f41] hover:to-[#5c7a54] focus:outline-none focus:ring-2 focus:ring-[#5c7a54] disabled:from-[#7b9674] disabled:to-[#6b8563] transition-all duration-200 flex items-center justify-center gap-2 font-medium"
-        >
+          className="w-full px-8 py-3 bg-linear-to-r from-[#5c7a54] to-[#6b8c62] text-white rounded-lg shadow-lg hover:from-[#485f41] hover:to-[#5c7a54] focus:outline-none focus:ring-2 focus:ring-[#5c7a54] disabled:from-[#7b9674] disabled:to-[#6b8563] transition-all duration-200 flex items-center justify-center gap-2 font-medium">
           {isLoading ? (
             <>
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

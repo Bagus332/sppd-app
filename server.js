@@ -9,6 +9,7 @@ const { createInitialAdmin } = require('./controllers/auth.controller');
 const suratRoutes = require('./routes/surat.routes');
 const authRoutes = require('./routes/auth.routes');
 const pegawaiRoutes = require('./routes/pegawai.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -20,7 +21,7 @@ const PORT = process.env.PORT || 8080;
 // Konfigurasi CORS agar API dapat diakses dari frontend (Next.js)
 app.use(
   cors({
-    origin: 'http://localhost:3000', // Ganti jika domain frontend berubah
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -30,6 +31,8 @@ app.use(
 // Parsing request body JSON dan form-urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 // Middleware logging sederhana untuk debugging
 app.use((req, res, next) => {
@@ -61,6 +64,9 @@ app.use('/api/surat', suratRoutes);
 
 // Route autentikasi (register, login, logout)
 app.use('/api/auth', authRoutes);
+
+// Route dashboard statistics
+app.use('/api/dashboard', dashboardRoutes);
 
 // =====================================================
 // 🗄️ KONEKSI DATABASE DAN MENJALANKAN SERVER

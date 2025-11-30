@@ -1,15 +1,15 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
 
 :root {
   /* Base colors */
   --black: #1a1a1a;
   --white: #ffffff;
-  
+
   /* Theme colors */
   --background: var(--black);
   --foreground: #faf9f7;
-  
+
   /* Primary - Olive Green (Zaitu) */
   --zaitu-50: #f3f5f2;
   --zaitu-100: #e7ebe5;
@@ -19,7 +19,7 @@
   --zaitu-500: #5c7a54;
   --zaitu-600: #485f41;
   --zaitu-700: #3d4f36;
-  
+
   /* Secondary - Terracotta */
   --terra-50: #fdf3f1;
   --terra-100: #fbe5e1;
@@ -29,7 +29,7 @@
   --terra-500: #c66756;
   --terra-600: #a85647;
   --terra-700: #8c463a;
-  
+
   /* Neutral tones */
   --neutral-50: #2a2a2a;
   --neutral-100: #242424;
@@ -39,7 +39,7 @@
   --neutral-500: #737373;
   --neutral-600: #a0a0a0;
   --neutral-700: #d4d4d4;
-  
+
   /* Surface colors */
   --surface: var(--neutral-100);
   --surface-dark: var(--neutral-200);
@@ -83,4 +83,21 @@ body {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
+}
+
+/* Toast Animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
 }

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 interface AuthContextType {
   user: any;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (data: any) => void;
   logout: () => void;
 }
@@ -17,24 +18,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // 🔹 Cek token di localStorage setiap reload (biar tetap tahu status login)
+  // 🔹 Check authentication status on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-      setUser(null);
-    }
+    checkAuthStatus();
   }, []);
 
-  // 🔹 Fungsi login
+  const checkAuthStatus = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:8080/api/auth/check', {
+        credentials: 'include', // Send httpOnly cookie
+      });
+      const data = await response.json();
+      if (data.loggedIn) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🔹 Fungsi login - rely on httpOnly cookie from backend
   const login = (data: any) => {
     setUser(data);
-    localStorage.setItem("token", data?.token || "");
     setIsAuthenticated(true);
+    // Backend already set httpOnly cookie, no need for localStorage
   };
 
   // 🔹 Fungsi logout
@@ -48,12 +66,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         method: "POST",
         credentials: "include",
       });
-
-      console.log("Menghapus token...");
-      localStorage.removeItem("token");
-      sessionStorage.clear();
-      document.cookie =
-        "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
 
       setUser(null);
       setIsAuthenticated(false);
@@ -70,10 +82,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       user,
       isAuthenticated,
+      isLoading,
       login,
       logout,
     }),
-    [user, isAuthenticated]
+    [user, isAuthenticated, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

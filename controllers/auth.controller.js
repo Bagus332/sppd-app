@@ -55,10 +55,17 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Password tidak valid!" });
     }
 
+    // Validate JWT_SECRET exists
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('CRITICAL: JWT_SECRET is not defined in environment variables!');
+      return res.status(500).json({ message: "Server configuration error" });
+    }
+
     // Generate JWT token (1 jam)
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      config.secret || process.env.JWT_SECRET || 'secretkey',
+      jwtSecret,
       { expiresIn: '1h' }
     );
 
@@ -116,10 +123,11 @@ exports.checkAuth = (req, res) => {
 
   try {
     const tokenString = token.startsWith('Bearer ') ? token.slice(7) : token;
-    const decoded = jwt.verify(
-      tokenString,
-      config.secret || process.env.JWT_SECRET || 'secretkey'
-    );
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(200).json({ loggedIn: false });
+    }
+    const decoded = jwt.verify(tokenString, jwtSecret);
     return res.status(200).json({ loggedIn: true, userId: decoded.id });
   } catch (err) {
     return res.status(200).json({ loggedIn: false });
@@ -133,13 +141,20 @@ exports.createInitialAdmin = async () => {
   try {
     const adminExists = await User.findOne({ where: { role: 'admin' } });
     if (!adminExists) {
+      const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+      
       await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: await bcrypt.hash('admin123', 10),
+        username: adminUsername,
+        email: adminEmail,
+        password: await bcrypt.hash(adminPassword, 10),
         role: 'admin',
       });
-      console.log('Initial admin user created successfully');
+      console.log(`✅ Initial admin user created: ${adminUsername}`);
+      if (!process.env.ADMIN_PASSWORD) {
+        console.warn('⚠️  WARNING: Using default admin password. Please set ADMIN_PASSWORD in .env!');
+      }
     }
   } catch (err) {
     console.error('Error creating initial admin:', err);

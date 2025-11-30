@@ -1,29 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const pegawaiController = require("../controllers/pegawai.controller");
+const { verifyToken } = require('../middleware/auth.middleware');
 
-// === ROUTES CRUD PEGAWAI ===
-
-
-router.get("/", pegawaiController.getAllPegawai);
-router.get("/:id", pegawaiController.getPegawaiById);
-router.post("/", pegawaiController.createPegawai);
-router.put("/:id", pegawaiController.updatePegawai);
-router.delete("/:id", pegawaiController.deletePegawai);
+// === ROUTES CRUD PEGAWAI (Protected) ===
 
 // Ambil semua data pegawai
-router.get("/", pegawaiController.getAllPegawai);
+router.get("/", verifyToken, pegawaiController.getAllPegawai);
 
 // Ambil satu data pegawai berdasarkan ID
-router.get("/:id", pegawaiController.getPegawaiById);
+router.get("/:id", verifyToken, pegawaiController.getPegawaiById);
 
 // Simpan data pegawai baru
-router.post("/", pegawaiController.createPegawai);
+router.post("/", verifyToken, pegawaiController.createPegawai);
 
 // Update data pegawai berdasarkan ID
-router.put("/:id", pegawaiController.updatePegawai);
+router.put("/:id", verifyToken, pegawaiController.updatePegawai);
 
 // Hapus data pegawai berdasarkan ID
-router.delete("/:id", pegawaiController.deletePegawai);
+router.delete("/:id", verifyToken, pegawaiController.deletePegawai);
 
 module.exports = router;

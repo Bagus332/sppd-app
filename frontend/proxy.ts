@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('token');
-  
+
   // Public paths that don't require authentication
   const publicPaths = ['/login', '/register'];
-  
+
   // Check if the current path is public
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname);
 

@@ -15,8 +15,15 @@ const verifyToken = (req, res, next) => {
   // Hapus prefix 'Bearer ' kalau ada
   const tokenString = token.startsWith('Bearer ') ? token.slice(7, token.length) : token;
 
+  // Validate JWT_SECRET exists
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('CRITICAL: JWT_SECRET is not defined in environment variables!');
+    return res.status(500).json({ message: 'Server configuration error' });
+  }
+
   // Verifikasi token
-  jwt.verify(tokenString, config.secret, (err, decoded) => {
+  jwt.verify(tokenString, jwtSecret, (err, decoded) => {
     if (err) {
       // Token invalid atau expired
       if (err.name === 'TokenExpiredError') {

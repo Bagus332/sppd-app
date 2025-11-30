@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { Plus, X, Upload, UserCheck } from 'lucide-react';
+import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 // Tipe data untuk Pegawai dari Database
 type PegawaiDB = {
@@ -90,11 +91,8 @@ export default function PerjalananDinas() {
   useEffect(() => {
     const fetchPegawai = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/pegawai');
-        if (res.ok) {
-          const data = await res.json();
-          setDbPegawai(Array.isArray(data) ? data : data.data || []);
-        }
+        const data = await apiClient.get<PegawaiDB[] | { data: PegawaiDB[] }>(API_ENDPOINTS.PEGAWAI);
+        setDbPegawai(Array.isArray(data) ? data : (data as any).data || []);
       } catch (error) {
         console.error("Gagal mengambil data pegawai:", error);
       }
@@ -134,16 +132,7 @@ export default function PerjalananDinas() {
       // Payload dikirim apa adanya, backend akan menghandle PPK dari pegawai pertama
       const payload = { ...data, pengikut_list: [] };
 
-      const res = await fetch('http://localhost:8080/api/surat/simpan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.message || 'Gagal menyimpan data');
-      }
+      await apiClient.post(API_ENDPOINTS.SURAT + '/simpan', payload);
 
       setSubmitStatus('success');
       reset();

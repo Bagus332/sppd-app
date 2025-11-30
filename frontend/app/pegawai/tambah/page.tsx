@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus, ArrowLeft } from "lucide-react";
+import { apiClient, API_ENDPOINTS } from "@/lib/api-client";
 
 const TambahPegawai: React.FC = () => {
   const router = useRouter();
@@ -28,13 +29,7 @@ const TambahPegawai: React.FC = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch(PEGAWAI_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) throw new Error("Gagal menambahkan data pegawai");
+      await apiClient.post(API_ENDPOINTS.PEGAWAI, formData);
 
       alert("✅ Data pegawai berhasil ditambahkan!");
       router.push("/pegawai");

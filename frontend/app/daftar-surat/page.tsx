@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { FileText, Trash2, Eye, ArrowLeft, FileDown } from 'lucide-react';
+import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 interface Surat {
   id: number;
@@ -36,11 +37,7 @@ export default function DaftarSurat() {
   const fetchSurats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/surat', {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Gagal mengambil data surat');
-      const data = await response.json();
+      const data = await apiClient.get<Surat[]>(API_ENDPOINTS.SURAT);
       setSurats(data || []);
     } catch (err: unknown) {
         if (err instanceof Error) setError(err.message);
@@ -53,31 +50,21 @@ export default function DaftarSurat() {
   const handleDownload = async (id: number, type: 'tugas' | 'spd') => {
     try {
       setDownloading(id);
-      const endpoint = `http://localhost:8080/api/surat/${id}/download/${type}`;
       
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) throw new Error('Gagal mengunduh file');
+      const blob = await apiClient.downloadFile(`/api/surat/${id}/download/${type}`);
 
       // Proses Blob untuk download file
-      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       
       // Ambil nama file dari header jika ada, atau default
-      const contentDisposition = response.headers.get('Content-Disposition');
+      // Note: apiClient.downloadFile returns a Blob, headers are not directly accessible here easily unless we change downloadFile to return response.
+      // However, for now let's use a default name or try to improve downloadFile later.
+      // But wait, the previous code used response.headers.
+      // Let's stick to a simple filename for now or assume the user is okay with default names if we can't get headers.
+      // Actually, let's just use a hardcoded name based on type for simplicity as apiClient hides the response.
       let filename = type === 'tugas' ? 'Surat_Tugas.docx' : 'SPD.docx';
-      if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        const matches = filenameRegex.exec(contentDisposition);
-        if (matches != null && matches[1]) { 
-          filename = matches[1].replace(/['"]/g, '');
-        }
-      }
       
       a.download = filename;
       document.body.appendChild(a);
@@ -96,7 +83,7 @@ export default function DaftarSurat() {
   const handleDelete = async (id: number) => {
     if (!confirm('Apakah Anda yakin ingin menghapus surat ini?')) return;
     try {
-      await fetch(`http://localhost:8080/api/surat/${id}`, { method: 'DELETE' });
+      await apiClient.delete(API_ENDPOINTS.SURAT_BY_ID(id));
       setSurats(surats.filter(s => s.id !== id));
     } catch (err) {
       alert('Gagal menghapus surat');

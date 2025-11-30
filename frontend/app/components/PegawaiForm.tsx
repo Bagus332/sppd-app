@@ -11,6 +11,7 @@ import {
   X,
   Save,
 } from "lucide-react";
+import { apiClient, API_ENDPOINTS } from "@/lib/api-client";
 
 type Pegawai = {
   id: number;
@@ -32,9 +33,8 @@ const PegawaiForm: React.FC = () => {
   // ambil data pegawai
   const fetchPegawai = async () => {
     try {
-      const res = await fetch(PEGAWAI_ENDPOINT);
-      const data = await res.json();
-      setPegawai(Array.isArray(data) ? data : data.data);
+      const data = await apiClient.get<Pegawai[] | { data: Pegawai[] }>(API_ENDPOINTS.PEGAWAI);
+      setPegawai(Array.isArray(data) ? data : (data as any).data || []);
     } catch (err) {
       console.error("❌ Gagal memuat data pegawai:", err);
     }
@@ -56,14 +56,7 @@ const PegawaiForm: React.FC = () => {
     if (!confirm("Apakah kamu yakin ingin menghapus data ini?")) return;
 
     try {
-      const res = await fetch(`${PEGAWAI_ENDPOINT}/${id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json().catch(() => ({}));
-      console.log("Delete Status:", res.status, "Response:", data);
-
-      if (!res.ok) throw new Error("Gagal menghapus data pegawai");
+      await apiClient.delete(API_ENDPOINTS.PEGAWAI_BY_ID(id));
 
       alert("🗑️ Data pegawai berhasil dihapus!");
       fetchPegawai();
@@ -80,16 +73,7 @@ const PegawaiForm: React.FC = () => {
     if (!selectedPegawai) return; // pastikan ada pegawai yang sedang diedit
 
     try {
-      const res = await fetch(`${PEGAWAI_ENDPOINT}/${selectedPegawai.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selectedPegawai),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      console.log("Update Status:", res.status, "Response:", data);
-
-      if (!res.ok) throw new Error("Gagal memperbarui data pegawai");
+      await apiClient.put(API_ENDPOINTS.PEGAWAI_BY_ID(selectedPegawai.id), selectedPegawai);
 
       alert("✅ Data pegawai berhasil diperbarui!");
       setIsEditing(false);

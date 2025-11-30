@@ -4,9 +4,52 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { useAuth } from "../contexts/AuthContext";
 import { FileText, Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { apiClient, API_ENDPOINTS } from '../../lib/api-client';
+
+interface DashboardStats {
+  totalPerjalanan: number;
+  totalSPD: number;
+  totalPegawai: number;
+  suratSelesai: number;
+}
 
 export default function Dashboard() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalPerjalanan: 0,
+    totalSPD: 0,
+    totalPegawai: 0,
+    suratSelesai: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Only fetch if authenticated and auth check is complete
+    if (!authLoading && isAuthenticated) {
+      fetchDashboardStats();
+    } else if (!authLoading) {
+      setLoading(false);
+    }
+  }, [isAuthenticated, authLoading]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<{ success: boolean; data: DashboardStats }>(
+        API_ENDPOINTS.DASHBOARD_STATS
+      );
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+      // If unauthorized, stats will remain at 0
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const menuItems = [
     {
@@ -32,11 +75,11 @@ export default function Dashboard() {
     },
   ];
 
-  const stats = [
-    { label: 'Total Perjalanan Dinas', value: 124, color: 'text-green-600' },
-    { label: 'Total SPD', value: 87, color: 'text-emerald-600' },
-    { label: 'Data Pegawai', value: 42, color: 'text-lime-600' },
-    { label: 'Surat Selesai', value: 93, color: 'text-teal-600' },
+  const statsDisplay = [
+    { label: 'Total Perjalanan Dinas', value: stats.totalPerjalanan, color: 'text-green-600' },
+    { label: 'Total SPD', value: stats.totalSPD, color: 'text-emerald-600' },
+    { label: 'Data Pegawai', value: stats.totalPegawai, color: 'text-lime-600' },
+    { label: 'Surat Selesai', value: stats.suratSelesai, color: 'text-teal-600' },
   ];
 
   return (
@@ -54,7 +97,20 @@ export default function Dashboard() {
 
         {/* Statistik */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          {stats.map((stat, index) => (
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow-sm p-5 text-center border border-gray-100 animate-pulse"
+              >
+                <div className="h-7 w-7 bg-gray-200 rounded mx-auto mb-3"></div>
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+              </div>
+            ))
+          ) : (
+            statsDisplay.map((stat, index) => (
             <div
               key={index}
               className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 text-center border border-gray-100"
@@ -63,7 +119,8 @@ export default function Dashboard() {
               <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
               <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
             </div>
-          ))}
+          ))
+          )}
         </div>
 
         {/* Menu Interaktif */}
