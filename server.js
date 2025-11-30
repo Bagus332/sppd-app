@@ -9,6 +9,8 @@ const { createInitialAdmin } = require('./controllers/auth.controller');
 const suratRoutes = require('./routes/surat.routes');
 const authRoutes = require('./routes/auth.routes');
 const pegawaiRoutes = require('./routes/pegawai.routes');
+const perjalananRoutes = require("./routes/perjalanan.routes");
+
 const dashboardRoutes = require('./routes/dashboard.routes');
 
 const app = express();
@@ -67,6 +69,9 @@ app.use('/api/auth', authRoutes);
 
 // Route dashboard statistics
 app.use('/api/dashboard', dashboardRoutes);
+
+app.use("/api/perjalanan", perjalananRoutes);
+
 
 // =====================================================
 // 🗄️ KONEKSI DATABASE DAN MENJALANKAN SERVER

@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { useAuth } from "../contexts/AuthContext";
-import { FileText, Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, FolderOpen, BarChart3, Plane } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { apiClient, API_ENDPOINTS } from '../../lib/api-client';
 
@@ -51,6 +52,25 @@ export default function Dashboard() {
     }
   };
 
+  // 🔥 State untuk data statistik (dinamis dari backend)
+  const [totalPerjalanan, setTotalPerjalanan] = useState(0);
+  const [totalSPD, setTotalSPD] = useState(0);
+  const [totalPegawai, setTotalPegawai] = useState(0);
+  const [totalSelesai, setTotalSelesai] = useState(0);
+
+  // 🔥 Ambil data dari backend (contoh untuk perjalanan)
+  useEffect(() => {
+    fetch("http://localhost:8080/api/perjalanan/count")
+      .then((res) => res.json())
+      .then((data) => setTotalPerjalanan(data.total))
+      .catch((err) => console.error("Error fetch perjalanan:", err));
+
+    fetch("http://localhost:8080/api/pegawai/count/all")
+      .then((res) => res.json())
+      .then((data) => setTotalPegawai(data.total))
+      .catch((err) => console.error("Error fetch pegawai:", err));
+  }, []);
+
   const menuItems = [
     {
       title: 'Buat Perjalanan Dinas',
@@ -87,8 +107,9 @@ export default function Dashboard() {
       <Header />
 
       <main className="px-6 py-10">
+
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-lg p-8 mb-10">
+        <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
           <h1 className="text-3xl font-bold mb-2">Dashboard SPPD</h1>
           <p className="text-green-100 text-sm">
             Sistem Pembuatan Surat Perjalanan Dinas Terpadu

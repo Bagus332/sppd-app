@@ -123,7 +123,7 @@ export default function DaftarSurat() {
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
+        <div className="bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl shadow-lg p-8 mb-10">
           <h1 className="text-3xl font-bold mb-2">Daftar Surat Tugas & SPD</h1>
           <p className="text-blue-100">Kelola dan unduh dokumen perjalanan dinas</p>
         </div>
