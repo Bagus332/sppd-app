@@ -1,37 +1,37 @@
 'use client';
-
-import Header from '@/app/components/Header';
 import PerjalananDinas from '@/app/components/PerjalananDinas';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react'; // Tambahan untuk ikon tombol kembali
+import { ArrowLeft } from 'lucide-react';
 
 export default function PerjalananDinasPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Navigasi */}
-      <Header />
-
-      {/* Konten Utama */}
-      <main className="py-10">
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="px-4 py-8 sm:px-0">
-            {/* Tombol Kembali - Ditambahkan di sini, di atas komponen PerjalananDinas */}
-            <div className="mb-6">
-              <button
-                onClick={() => router.back()} // Kembali ke halaman sebelumnya
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
-                title="Kembali ke halaman sebelumnya"
-              >
-                <ArrowLeft size={18} />
-                Kembali
-              </button>
-            </div>
-
-            <PerjalananDinas />
-          </div>
+    <div className="min-h-screen bg-gray-50/50">
+      <main className="p-6">
+        
+        {/* Tombol Kembali – sama seperti halaman DaftarSurat */}
+        <div className="mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 
+                       text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={18} /> Kembali
+          </button>
         </div>
+
+        {/* Card Judul */}
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-8 mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-[#5c7a54]">Perjalanan Dinas</h1>
+          <p className="text-neutral-500">Kelola data perjalanan dinas pegawai dengan mudah dan terstruktur.</p>
+        </div>
+
+        {/* Konten Utama */}
+        <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
+          <PerjalananDinas />
+        </div>
+
       </main>
     </div>
   );
