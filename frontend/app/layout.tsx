@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from './contexts/AuthContext';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
+import { AuthProvider } from "./contexts/AuthContext";
+import LayoutWrapper from "./LayoutWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,26 +19,14 @@ export const metadata: Metadata = {
   description: "Aplikasi pembuatan surat tugas otomatis",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <div className="flex min-h-screen bg-neutral-50">
-            <Sidebar />
-            <div className="flex-1 flex flex-col">
-              <Navbar />
-              <main className="flex-1 p-6 overflow-auto">
-                {children}
-              </main>
-            </div>
-          </div>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </AuthProvider>
       </body>
     </html>
