@@ -1,23 +1,12 @@
-// frontend/app/perjalanan-dinas/page.tsx
 'use client';
 
-import React, { useEffect } from 'react';
 import Header from '@/app/components/Header';
 import PerjalananDinas from '@/app/components/PerjalananDinas';
-import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react'; // Tambahan untuk ikon tombol kembali
 
 export default function PerjalananDinasPage() {
-  const { isAuthenticated } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    // Jika butuh proteksi login
-    if (!isAuthenticated) {
-      router.replace('/login'); 
-    }
-  }, [isAuthenticated, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">

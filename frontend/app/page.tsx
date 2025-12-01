@@ -7,15 +7,17 @@ import Header from './components/Header';
 
 export default function Home() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    if (isLoading) return;
+    
     if (!isAuthenticated) {
       router.replace('/login');
-      return;
+    } else {
+      router.replace('/dashboard');
     }
-    router.replace('/dashboard');
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">
