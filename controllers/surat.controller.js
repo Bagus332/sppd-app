@@ -215,3 +215,51 @@ exports.deleteSurat = async (req, res) => {
     res.status(200).json({ message: 'Deleted' });
   } catch (err) { res.status(500).json({ message: 'Error' }); }
 };
+
+const ExcelJS = require('exceljs');
+
+exports.exportSPDToExcel = async (req, res) => {
+  try {
+    const spds = await PerjalananDinas.findAll({ order: [['tgl_berangkat', 'DESC']] });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Laporan SPD');
+
+    // Header
+    sheet.columns = [
+      { header: 'Nomor SPD', key: 'nomor_spd', width: 20 },
+      { header: 'Nama Pegawai', key: 'nama_pegawai', width: 30 },
+      { header: 'Tujuan', key: 'tujuan', width: 30 },
+      { header: 'Tanggal Berangkat', key: 'tgl_berangkat', width: 20 },
+      { header: 'Tanggal Kembali', key: 'tgl_kembali', width: 20 },
+      { header: 'Keterangan', key: 'keterangan', width: 30 },
+    ];
+
+    // Isi data
+    spds.forEach((s) => {
+      sheet.addRow({
+        nomor_spd: s.spd_nomor,
+        nama_pegawai: s.pegawai_list?.[0]?.nama_pegawai || '',
+        tujuan: s.tujuan || s.maksud_dinas,
+        tgl_berangkat: s.tgl_berangkat,
+        tgl_kembali: s.tgl_kembali,
+        keterangan: s.keterangan || '',
+      });
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=' + 'Laporan_SPD.xlsx'
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Gagal export SPD', error: err.message });
+  }
+};
