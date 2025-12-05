@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ArrowLeft, FileDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface SPD {
   id: number;
@@ -9,9 +11,11 @@ interface SPD {
   tempat_tujuan: string;
   tgl_berangkat: string;
   tgl_kembali: string;
+  lama_hari: number;
 }
 
 export default function LaporanSPD() {
+  const router = useRouter();
   const [data, setData] = useState<SPD[]>([]);
   const [dari, setDari] = useState('');
   const [sampai, setSampai] = useState('');
@@ -22,14 +26,12 @@ export default function LaporanSPD() {
     setLoading(true);
     setError('');
     try {
-      let url = 'http://localhost:8080/laporan/spd'; // pakai host lengkap
+      let url = 'http://localhost:8080/laporan/spd';
       if (from && to) url += `?dari=${from}&sampai=${to}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const json = await res.json();
-      setData(json);
+      setData(json || []);
     } catch (err: unknown) {
-      console.error(err);
       if (err instanceof Error) setError(err.message);
     } finally {
       setLoading(false);
@@ -50,59 +52,124 @@ export default function LaporanSPD() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Laporan SPD</h1>
+    <div className="min-h-screen bg-gray-50/50">
+      <main className="p-6">
 
-      {/* Filter */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
-        <input type="date" value={dari} onChange={e => setDari(e.target.value)} className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <input type="date" value={sampai} onChange={e => setSampai(e.target.value)} className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <button onClick={handleFilter} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Saring</button>
-        <button onClick={handleExport} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">Cetak Excel</button>
-      </div>
-
-      {/* Error */}
-      {error && <p className="text-red-600 mb-4">{error}</p>}
-
-      {/* Preview Table */}
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        {/* Tombol Kembali */}
+        <div className="mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={18} /> Kembali
+          </button>
         </div>
-      ) : (
-        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200 pb-4">
-          <table className="min-w-full">
-            <thead className="bg-orange-100 text-gray-700 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left font-semibold">Nomor SPD</th>
-                <th className="px-6 py-3 text-left font-semibold">Pejabat Pembuat Komitmen</th>
-                <th className="px-6 py-3 text-left font-semibold">Tujuan</th>
-                <th className="px-6 py-3 text-left font-semibold">Tanggal Berangkat</th>
-                <th className="px-6 py-3 text-left font-semibold">Tanggal Kembali</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.length > 0 ? data.map(row => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-3">{row.spd_nomor}</td>
-                  <td className="px-6 py-3">{row.ppk_name}</td>
-                  <td className="px-6 py-3">{row.tempat_tujuan}</td>
-                  <td className="px-6 py-3">{formatDate(row.tgl_berangkat)}</td>
-                  <td className="px-6 py-3">{formatDate(row.tgl_kembali)}</td>
-                </tr>
-              )) : (
+
+        {/* Header */}
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-8 mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-[#5c7a54]">Laporan SPD</h1>
+          <p className="text-neutral-500">
+            Rekap data perjalanan dinas berdasarkan rentang tanggal
+          </p>
+
+          {/* Filter */}
+          <div className="mt-6 flex flex-wrap gap-3 items-center">
+            <input
+              type="date"
+              value={dari}
+              onChange={(e) => setDari(e.target.value)}
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#5c7a54]"
+            />
+            <input
+              type="date"
+              value={sampai}
+              onChange={(e) => setSampai(e.target.value)}
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#5c7a54]"
+            />
+            <button
+              onClick={handleFilter}
+              className="bg-[#5c7a54] hover:bg-[#4f6b48] text-white px-4 py-2 rounded shadow text-sm"
+            >
+              Saring
+            </button>
+            <button
+              onClick={handleExport}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 text-sm"
+            >
+              <FileDown size={16} />
+              Cetak Excel
+            </button>
+          </div>
+        </div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5c7a54]"></div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <p className="text-red-600 mb-4">{error}</p>
+        )}
+
+        {/* Table */}
+        {!loading && data.length > 0 && (
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-neutral-200 pb-4">
+            <table className="w-full">
+              <thead className="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                 <tr>
-                  <td colSpan={6} className="px-6 py-3 text-center text-gray-400">Tidak ada data</td>
+                  <th className="px-6 py-4 text-left font-semibold">Nomor SPD</th>
+                  <th className="px-6 py-4 text-left font-semibold">Pegawai Pembuat Komitmen</th>
+                  <th className="px-6 py-4 text-left font-semibold">Tujuan</th>
+                  <th className="px-6 py-4 text-left font-semibold">Tanggal</th>
+                  <th className="px-6 py-4 text-left font-semibold">Durasi</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {data.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-neutral-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-neutral-900">
+                      {row.spd_nomor}
+                    </td>
+                    <td className="px-6 py-4 text-neutral-700">
+                      {row.ppk_name}
+                    </td>
+                    <td className="px-6 py-4 text-neutral-700">
+                      {row.tempat_tujuan}
+                    </td>
+                    <td className="px-6 py-4 text-neutral-700 text-sm">
+                      {formatDate(row.tgl_berangkat)} s.d <br />
+                      {formatDate(row.tgl_kembali)}
+                    </td>
+                    <td className="px-6 py-4 text-neutral-700">
+                      {row.lama_hari} hari
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && data.length === 0 && (
+          <div className="text-center text-neutral-400 py-12 bg-white rounded-xl border">
+            Tidak ada data SPD
+          </div>
+        )}
+      </main>
     </div>
   );
 }
