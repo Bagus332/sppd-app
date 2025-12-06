@@ -25,8 +25,8 @@ const menuItems = [
     name: "Laporan",
     icon: BarChartIcon,
     children: [
-      { name: "Laporan Surat Tugas", href: "/laporan/surat-tugas" },
-      { name: "Laporan SPD", href: "/laporan/spd" },
+      { name: "Surat Tugas", href: "/laporan/surat-tugas" },
+      { name: "SPD", href: "/laporan/spd" },
     ],
   },
 

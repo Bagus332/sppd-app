@@ -216,6 +216,43 @@ exports.deleteSurat = async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Error' }); }
 };
 
+/**
+ * Update Surat (PUT /api/surat/:id)
+ */
+exports.updateSurat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const surat = await PerjalananDinas.findByPk(id);
+    if (!surat) return res.status(404).json({ message: 'Not Found' });
+
+    const updatableFields = [
+      'pegawai_list','pengikut_list','nomor','dasar_dipa','tanggal_surat','nama_dekan',
+      'maksud_dinas','tgl_berangkat','tgl_kembali','spd_nomor','pangkat_gol','jabatan_instansi',
+      'tingkat_biaya','alat_angkut','tempat_berangkat','tempat_tujuan','lama_hari'
+    ];
+
+    // Apply provided fields
+    updatableFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        surat[field] = req.body[field];
+      }
+    });
+
+    // Recalculate PPK fields if pegawai_list provided
+    if (req.body.pegawai_list && Array.isArray(req.body.pegawai_list) && req.body.pegawai_list.length > 0) {
+      surat.ppk_name = req.body.pegawai_list[0].nama_pegawai || surat.ppk_name;
+      surat.ppk_nip = req.body.pegawai_list[0].nip_pegawai || surat.ppk_nip;
+    }
+
+    await surat.save();
+
+    res.status(200).json({ message: 'Updated', data: surat });
+  } catch (err) {
+    console.error('Update Surat Error:', err);
+    res.status(500).json({ message: 'Error updating surat', error: err.message });
+  }
+};
+
 const ExcelJS = require('exceljs');
 
 exports.exportSPDToExcel = async (req, res) => {

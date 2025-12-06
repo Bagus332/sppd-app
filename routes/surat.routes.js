@@ -11,6 +11,9 @@ router.get('/', verifyToken, suratController.getAllSurat);
 // GET detail surat
 router.get('/:id', verifyToken, suratController.getSuratById);
 
+// PUT update surat
+router.put('/:id', verifyToken, suratController.updateSurat);
+
 // POST simpan perjalanan dinas (Simpan ke DB)
 router.post('/simpan', verifyToken, suratController.perjalananDinas);
 
