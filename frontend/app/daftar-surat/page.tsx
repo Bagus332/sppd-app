@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Trash2, Eye, ArrowLeft, FileDown } from 'lucide-react';
+import { FileText, Trash2, Eye, ArrowLeft, FileDown, Edit } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 interface Surat {
@@ -175,10 +175,18 @@ export default function DaftarSurat() {
                     <td className="px-6 py-4 text-center">
                        <div className="flex justify-center gap-2">
                         <button
-                            className="p-2 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                            title="Lihat Detail"
+                          onClick={() => router.push(`/daftar-surat/${surat.id}`)}
+                          className="p-2 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                          title="Lihat Detail"
                         >
                             <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => router.push(`/daftar-surat/${surat.id}/edit`)}
+                          className="p-2 text-neutral-400 hover:text-yellow-700 hover:bg-yellow-50 rounded-full transition-colors"
+                          title="Edit Surat"
+                        >
+                          <Edit size={18} />
                         </button>
                         <button
                             onClick={() => handleDelete(surat.id)}

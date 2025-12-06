@@ -141,7 +141,7 @@ export default function LaporanSuratTugas() {
                     Nomor Surat
                   </th>
                   <th className="px-6 py-4 text-left font-semibold">
-                    Pegawai
+                    Pegawai Pelaksana
                   </th>
                   <th className="px-6 py-4 text-left font-semibold">
                     Maksud Dinas
