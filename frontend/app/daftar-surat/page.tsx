@@ -17,7 +17,6 @@ interface Surat {
   tanggal_selesai: string;
   tgl_kembali: string;
   createdAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pegawai_list: any[];
 }
 

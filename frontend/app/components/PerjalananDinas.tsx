@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
-import { Plus, X, Upload, UserCheck } from 'lucide-react';
+import { Plus, X, Upload, UserCheck, Save } from 'lucide-react';
 import useSWR from 'swr';
 import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
+import { useRouter } from 'next/navigation';
 
 // Tipe data untuk Pegawai dari Database
 type PegawaiDB = {
@@ -24,7 +25,8 @@ type PegawaiItem = {
   jabatan_pegawai?: string;
 };
 
-type FormSuratGabunganData = {
+export type FormSuratGabunganData = {
+  id?: number;
   nomor?: string;
   menimbang_kegiatan?: string;
   dasar_dipa?: string;
@@ -47,9 +49,15 @@ type FormSuratGabunganData = {
   tgl_kembali?: string;
 };
 
-export default function PerjalananDinas() {
+interface PerjalananDinasProps {
+  initialData?: FormSuratGabunganData;
+  isEdit?: boolean;
+}
+
+export default function PerjalananDinas({ initialData, isEdit = false }: PerjalananDinasProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const router = useRouter();
 
   const { register, control, handleSubmit, reset, setValue, watch } = useForm<FormSuratGabunganData>({
     defaultValues: {
@@ -58,8 +66,23 @@ export default function PerjalananDinas() {
       tingkat_biaya: 'DIPA FST',
       lama_hari: 0,
       tanggal_surat: new Date().toISOString().substring(0, 10),
+      ...initialData
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      // Format dates to YYYY-MM-DD for input[type="date"]
+      const formattedData = {
+        ...initialData,
+        tgl_berangkat: initialData.tgl_berangkat ? new Date(initialData.tgl_berangkat).toISOString().split('T')[0] : '',
+        tgl_kembali: initialData.tgl_kembali ? new Date(initialData.tgl_kembali).toISOString().split('T')[0] : '',
+        tanggal_surat: initialData.tanggal_surat ? new Date(initialData.tanggal_surat).toISOString().split('T')[0] : '',
+      };
+      reset(formattedData);
+    }
+  }, [initialData, reset]);
 
   const { fields: pegawaiFields, append: appendPegawai, remove: removePegawai } = useFieldArray({
     control,
@@ -126,11 +149,24 @@ export default function PerjalananDinas() {
       // Payload dikirim apa adanya, backend akan menghandle PPK dari pegawai pertama
       const payload = { ...data, pengikut_list: [] };
 
-      await apiClient.post(API_ENDPOINTS.SURAT + '/simpan', payload);
+      if (isEdit && initialData?.id) {
+          await apiClient.put(API_ENDPOINTS.SURAT_BY_ID(initialData.id), payload);
+      } else {
+          await apiClient.post(API_ENDPOINTS.SURAT + '/simpan', payload);
+      }
 
       setSubmitStatus('success');
-      reset();
-      setTimeout(() => setSubmitStatus('idle'), 3000);
+      
+      if (!isEdit) {
+        reset();
+      }
+      
+      setTimeout(() => {
+          setSubmitStatus('idle');
+          if (isEdit) {
+              router.push('/daftar-surat');
+          }
+      }, 1500);
     } catch (error) {
       console.error(error);
       setSubmitStatus('error');
@@ -143,7 +179,9 @@ export default function PerjalananDinas() {
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl mx-auto p-8 space-y-8 bg-neutral-100/90 backdrop-blur-sm rounded-xl shadow-xl border border-neutral-300">
       {/* Header */}
       <div className="space-y-2 border-b pb-4">
-        <h1 className="text-3xl font-bold text-[#5c7a54]">Form Gabungan — Surat Tugas & SPD</h1>
+        <h1 className="text-3xl font-bold text-[#5c7a54]">
+            {isEdit ? 'Edit Data Perjalanan Dinas' : 'Form Gabungan — Surat Tugas & SPD'}
+        </h1>
         <p className="text-sm text-neutral-600">Pegawai Pertama otomatis dianggap sebagai <b>Pejabat Pembuat Komitmen (PPK)</b>.</p>
       </div>
 
@@ -335,8 +373,8 @@ export default function PerjalananDinas() {
         >
             {isSubmitting ? 'Menyimpan Data...' : (
             <>
-                <Upload className="h-5 w-5 mr-2" />
-                Simpan Data Perjalanan Dinas
+                {isEdit ? <Save className="h-5 w-5 mr-2" /> : <Upload className="h-5 w-5 mr-2" />}
+                {isEdit ? 'Simpan Perubahan' : 'Simpan Data Perjalanan Dinas'}
             </>
             )}
         </button>
@@ -344,7 +382,7 @@ export default function PerjalananDinas() {
         {/* Status Messages */}
         {submitStatus === 'success' && (
             <div className="mt-4 p-4 bg-[#5c7a54]/10 border border-[#5c7a54]/30 rounded-lg text-sm text-[#5c7a54] font-medium flex items-center gap-2">
-                <UserCheck size={18} /> Data perjalanan dinas berhasil disimpan ke database.
+                <UserCheck size={18} /> {isEdit ? 'Data berhasil diperbarui.' : 'Data perjalanan dinas berhasil disimpan ke database.'}
             </div>
         )}
         {submitStatus === 'error' && (
