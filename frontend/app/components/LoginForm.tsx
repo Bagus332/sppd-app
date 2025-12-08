@@ -62,11 +62,11 @@ export default function LoginForm() {
   return (
     <div className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-[#5c7a54]">
-          Login SPPD
+        <h1 className="text-2xl font-bold text-[#5c7a54] tracking-tight">
+          Login ADLI
         </h1>
         <p className="text-sm text-neutral-500 mt-2">
-          Masuk ke sistem untuk membuat surat tugas
+          Masuk ke sistem Administrative Letter & Itinerary
         </p>
       </div>
 

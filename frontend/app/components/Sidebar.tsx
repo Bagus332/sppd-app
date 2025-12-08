@@ -43,8 +43,13 @@ export default function Sidebar() {
       
       {/* Logo */}
       <div className="p-6 border-b border-neutral-100 flex items-center justify-center">
-        <h1 className="text-2xl font-bold text-[#5c7a54] tracking-tight">
-          SPPD App
+        <h1 className="text-[#5c7a54] leading-tight">
+          <span className="block text-2xl font-bold tracking-tight">
+            ADLI
+          </span>
+          <span className="block text-xs font-medium tracking-wide">
+            Administrative Letter & Itinerary
+          </span>
         </h1>
       </div>
 
