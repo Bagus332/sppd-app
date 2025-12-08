@@ -3,6 +3,7 @@ import { fetchServer } from '../../lib/api-server';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChartIcon, PersonIcon, FileTextIcon, RocketIcon, PlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
+import { OverviewChart } from '@/components/dashboard/overview-chart';
 
 interface DashboardStats {
   totalPerjalanan: number;
@@ -91,10 +92,10 @@ export default async function Dashboard() {
       <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 border-none shadow-md">
           <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
+            <CardTitle>Overview</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>Belum ada aktivitas terbaru</p>
+          <CardContent className="pl-2">
+            <OverviewChart data={stats} />
           </CardContent>
         </Card>
         <Card className="col-span-3 border-none shadow-md">
