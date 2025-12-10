@@ -365,9 +365,35 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
             {errors.tgl_berangkat && <p className="text-red-600 text-sm mt-1">{errors.tgl_berangkat.message}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-600">Tanggal Kembali</label>
-            <input type="date" aria-invalid={errors.tgl_kembali ? 'true' : 'false'} {...register('tgl_kembali', { required: 'Tanggal kembali wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
-            {errors.tgl_kembali && <p className="text-red-600 text-sm mt-1">{errors.tgl_kembali.message}</p>}
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Tanggal Kembali
+            </label>
+
+            <input
+              type="date"
+              aria-invalid={errors.tgl_kembali ? "true" : "false"}
+              {...register("tgl_kembali", {
+                required: "Tanggal kembali wajib diisi.",
+                validate: {
+                  lebihAwalDariBerangkat: (value: string = "") => {
+                    const tglBerangkat: string = watch("tgl_berangkat") || "";
+
+                    if (tglBerangkat && value < tglBerangkat) {
+                      return "Tanggal kembali tidak boleh lebih kecil dari tanggal berangkat.";
+                    }
+
+                    return true;
+                  }
+                }
+              })}
+              className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
+            />
+
+            {errors.tgl_kembali && (
+              <p className="text-red-600 text-sm mt-1">
+                {errors.tgl_kembali.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-600">Lama Hari <span className="text-xs text-gray-400 font-normal">(Otomatis)</span></label>
