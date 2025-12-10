@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   UserPlus,
-  Users,
-  ArrowLeft,
   Pencil,
   Trash2,
   X,
   Save,
+  Search,
 } from "lucide-react";
 import { apiClient, API_ENDPOINTS } from "@/lib/api-client";
 
@@ -24,14 +23,21 @@ type Pegawai = {
 
 const PegawaiForm: React.FC = () => {
   const router = useRouter();
+
   const [pegawai, setPegawai] = useState<Pegawai[]>([]);
+  const [search, setSearch] = useState("");
+
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
 
-  // ambil data pegawai
+  // =============================
+  // FETCH DATA
+  // =============================
   const fetchPegawai = async () => {
     try {
-      const data = await apiClient.get<Pegawai[] | { data: Pegawai[] }>(API_ENDPOINTS.PEGAWAI);
+      const data = await apiClient.get<Pegawai[] | { data: Pegawai[] }>(
+        API_ENDPOINTS.PEGAWAI
+      );
       setPegawai(Array.isArray(data) ? data : (data as any).data || []);
     } catch (err) {
       console.error("❌ Gagal memuat data pegawai:", err);
@@ -42,20 +48,39 @@ const PegawaiForm: React.FC = () => {
     fetchPegawai();
   }, []);
 
+  // =============================
+  // FILTER DATA BERDASARKAN SEARCH
+  // =============================
+  const filteredPegawai = useMemo(() => {
+    if (!search.trim()) return pegawai;
 
-  // buka modal edit
+    return pegawai.filter((p) => {
+      const key = search.toLowerCase();
+      return (
+        p.nama.toLowerCase().includes(key) ||
+        p.nip.toLowerCase().includes(key) ||
+        p.pangkat_golongan.toLowerCase().includes(key) ||
+        p.jabatan_instansi.toLowerCase().includes(key)
+      );
+    });
+  }, [search, pegawai]);
+
+  // =============================
+  // EDIT
+  // =============================
   const handleEdit = (p: Pegawai) => {
     setSelectedPegawai(p);
     setIsEditing(true);
   };
 
-  // hapus pegawai
+  // =============================
+  // DELETE
+  // =============================
   const handleDelete = async (id: number) => {
     if (!confirm("Apakah kamu yakin ingin menghapus data ini?")) return;
 
     try {
       await apiClient.delete(API_ENDPOINTS.PEGAWAI_BY_ID(id));
-
       alert("🗑️ Data pegawai berhasil dihapus!");
       fetchPegawai();
     } catch (err) {
@@ -64,34 +89,38 @@ const PegawaiForm: React.FC = () => {
     }
   };
 
-  // update data pegawai
+  // =============================
+  // UPDATE
+  // =============================
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!selectedPegawai) return; // pastikan ada pegawai yang sedang diedit
+    if (!selectedPegawai) return;
 
     try {
-      await apiClient.put(API_ENDPOINTS.PEGAWAI_BY_ID(selectedPegawai.id), selectedPegawai);
+      await apiClient.put(
+        API_ENDPOINTS.PEGAWAI_BY_ID(selectedPegawai.id),
+        selectedPegawai
+      );
 
       alert("✅ Data pegawai berhasil diperbarui!");
       setIsEditing(false);
-      setSelectedPegawai(null); // reset form edit
-      fetchPegawai(); // reload data terbaru
+      setSelectedPegawai(null);
+      fetchPegawai();
     } catch (err) {
       console.error("❌ handleUpdate error:", err);
       alert("❌ Gagal memperbarui data pegawai.");
     }
   };
 
-
   return (
     <div className="space-y-8 text-neutral-800 p-6">
-      {/* Header Section */}
+      {/* HEADER */}
       <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-8 flex justify-between items-center">
         <div>
-            <h2 className="text-3xl font-bold text-[#5c7a54] mb-2">Data Pegawai</h2>
-            <p className="text-neutral-500">Kelola seluruh data pegawai di lingkungan instansi.</p>
+          <h2 className="text-3xl font-bold text-[#5c7a54] mb-2">Data Pegawai</h2>
+          <p className="text-neutral-500">Kelola seluruh data pegawai di lingkungan instansi.</p>
         </div>
+
         <button
           onClick={() => router.push("/pegawai/tambah")}
           className="flex items-center gap-2 bg-[#5c7a54] hover:bg-[#4a6344] text-white font-medium px-6 py-3 rounded-lg shadow-sm transition-all"
@@ -101,18 +130,29 @@ const PegawaiForm: React.FC = () => {
         </button>
       </div>
 
-      {/* Tabel Data Pegawai */}
+      {/* TABEL */}
       <div className="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden text-neutral-800">
-        <div className="p-6 border-b border-neutral-200 bg-neutral-50/50">
-            <h3 className="text-lg font-semibold text-neutral-700">
-            Daftar Pegawai
-            </h3>
+        <div className="p-6 border-b border-neutral-200 bg-neutral-50/50 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-neutral-700">Daftar Pegawai</h3>
+
+          {/* SEARCH BAR */}
+          <div className="relative w-64">
+            <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari nama, NIP, jabatan..."
+              className="w-full border border-neutral-300 rounded-lg pl-10 pr-3 py-2.5 text-sm 
+              focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-neutral-800">
+          <table className="min-w-full text-sm text-left text-neutral-800">
             <thead className="bg-neutral-50 text-neutral-600 font-medium border-b border-neutral-200">
-                <tr>
+              <tr>
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Nama</th>
                 <th className="px-6 py-4">Tanggal Lahir</th>
@@ -120,56 +160,55 @@ const PegawaiForm: React.FC = () => {
                 <th className="px-6 py-4">Pangkat / Golongan</th>
                 <th className="px-6 py-4">Jabatan / Instansi</th>
                 <th className="px-6 py-4 text-center">Aksi</th>
-                </tr>
+              </tr>
             </thead>
+
             <tbody className="divide-y divide-neutral-100">
-                {pegawai.length > 0 ? (
-                pegawai.map((p, i) => (
-                    <tr
-                    key={p.id || i}
-                    className="hover:bg-neutral-50 transition-colors"
-                    >
+              {filteredPegawai.length > 0 ? (
+                filteredPegawai.map((p, i) => (
+                  <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
                     <td className="px-6 py-4 text-center">{i + 1}</td>
                     <td className="px-6 py-4 font-medium">{p.nama}</td>
                     <td className="px-6 py-4">{p.tanggal_lahir}</td>
                     <td className="px-6 py-4">{p.nip}</td>
                     <td className="px-6 py-4">{p.pangkat_golongan}</td>
                     <td className="px-6 py-4">{p.jabatan_instansi}</td>
+
                     <td className="px-6 py-4 text-center space-x-2">
-                        <button
+                      <button
                         onClick={() => handleEdit(p)}
                         className="p-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 rounded-lg transition border border-yellow-200"
-                        title="Edit"
-                        >
+                      >
                         <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
+                      </button>
+
+                      <button
                         onClick={() => handleDelete(p.id)}
                         className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200"
-                        title="Hapus"
-                        >
+                      >
                         <Trash2 className="w-4 h-4" />
-                        </button>
+                      </button>
                     </td>
-                    </tr>
+                  </tr>
                 ))
-                ) : (
+              ) : (
                 <tr>
-                    <td colSpan={7} className="text-center p-8 text-neutral-500 italic">
-                    Belum ada data pegawai yang tersimpan.
-                    </td>
+                  <td colSpan={7} className="text-center p-8 text-neutral-500 italic">
+                    Tidak ada data pegawai ditemukan.
+                  </td>
                 </tr>
-                )}
+              )}
             </tbody>
-            </table>
+          </table>
         </div>
       </div>
 
-      {/* Modal Edit */}
+      {/* MODAL EDIT */}
       {isEditing && selectedPegawai && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative border border-neutral-200">
-            {/* Tombol close */}
+
+            {/* CLOSE */}
             <button
               onClick={() => setIsEditing(false)}
               className="absolute top-4 right-4 text-neutral-400 hover:text-red-600 transition-colors"
@@ -177,50 +216,47 @@ const PegawaiForm: React.FC = () => {
               <X className="w-6 h-6" />
             </button>
 
-            {/* Judul */}
             <h3 className="text-2xl font-bold text-[#5c7a54] mb-6 text-center">
               Edit Data Pegawai
             </h3>
 
-            {/* Form Edit */}
+            {/* FORM EDIT */}
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    name="nama"
-                    value={selectedPegawai.nama}
-                    onChange={(e) =>
-                      setSelectedPegawai({ ...selectedPegawai, nama: e.target.value })
-                    }
-                    required
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 
-                    focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
-                    outline-none transition"
-                  />
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Nama Lengkap
+                </label>
+                <input
+                  type="text"
+                  value={selectedPegawai.nama}
+                  onChange={(e) =>
+                    setSelectedPegawai({ ...selectedPegawai, nama: e.target.value })
+                  }
+                  required
+                  className="w-full border border-neutral-300 rounded-lg p-2.5 
+                  focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                  outline-none transition"
+                />
               </div>
-              
+
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Tanggal Lahir
-                  </label>
-                  <input
-                    type="date"
-                    name="tanggal_lahir"
-                    value={selectedPegawai.tanggal_lahir}
-                    onChange={(e) =>
-                      setSelectedPegawai({
-                        ...selectedPegawai,
-                        tanggal_lahir: e.target.value,
-                      })
-                    }
-                    required
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 
-                    focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
-                    outline-none transition"
-                  />
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Tanggal Lahir
+                </label>
+                <input
+                  type="date"
+                  value={selectedPegawai.tanggal_lahir}
+                  onChange={(e) =>
+                    setSelectedPegawai({
+                      ...selectedPegawai,
+                      tanggal_lahir: e.target.value,
+                    })
+                  }
+                  required
+                  className="w-full border border-neutral-300 rounded-lg p-2.5 
+                  focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                  outline-none transition"
+                />
               </div>
 
               <div>
@@ -229,7 +265,6 @@ const PegawaiForm: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  name="nip"
                   value={selectedPegawai.nip}
                   onChange={(e) =>
                     setSelectedPegawai({ ...selectedPegawai, nip: e.target.value })
@@ -246,7 +281,6 @@ const PegawaiForm: React.FC = () => {
                   Pangkat / Golongan
                 </label>
                 <select
-                  name="pangkat_golongan"
                   value={selectedPegawai.pangkat_golongan}
                   onChange={(e) =>
                     setSelectedPegawai({
@@ -286,7 +320,6 @@ const PegawaiForm: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  name="jabatan_instansi"
                   value={selectedPegawai.jabatan_instansi}
                   onChange={(e) =>
                     setSelectedPegawai({
@@ -309,6 +342,7 @@ const PegawaiForm: React.FC = () => {
                 >
                   Batal
                 </button>
+
                 <button
                   type="submit"
                   className="flex items-center gap-2 bg-[#5c7a54] hover:bg-[#4a6344] text-white px-5 py-2.5 rounded-lg shadow-sm transition font-medium"
@@ -318,6 +352,7 @@ const PegawaiForm: React.FC = () => {
                 </button>
               </div>
             </form>
+
           </div>
         </div>
       )}
