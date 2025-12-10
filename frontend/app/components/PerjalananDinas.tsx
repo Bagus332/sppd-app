@@ -38,7 +38,6 @@ export type FormSuratGabunganData = {
   nama_dekan?: string;
   pegawai_list: PegawaiItem[];
   spd_nomor?: string;
-  // Field ppk_name & ppk_nip dihapus dari form input karena otomatis
   tingkat_biaya?: string;
   maksud_dinas?: string;
   alat_angkut?: string;
@@ -59,7 +58,7 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const router = useRouter();
 
-  const { register, control, handleSubmit, reset, setValue, watch } = useForm<FormSuratGabunganData>({
+  const { register, control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<FormSuratGabunganData>({
     defaultValues: {
       pegawai_list: [], 
       tempat_berangkat: 'Padang',
@@ -134,6 +133,13 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
   };
 
   const onSubmit: SubmitHandler<FormSuratGabunganData> = async (data) => {
+    // additional safety check: require at least one pegawai
+    if (!data.pegawai_list || data.pegawai_list.length === 0) {
+      alert('Minimal 1 pegawai harus ditambahkan.');
+      return;
+    }
+
+    // react-hook-form will already validate required fields, this guards extra conditions
     if (data.pegawai_list && data.pegawai_list.length > 0) {
       const invalidPegawai = data.pegawai_list.some(p => !p.nama_pegawai || !p.nip_pegawai);
       if (invalidPegawai) {
@@ -192,9 +198,14 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
         <div className="grid grid-cols-1 gap-6">
           <div>
             <label className="block text-sm font-medium text-neutral-600">Nomor SPD</label>
-            <input type="text" {...register('spd_nomor')} placeholder="Ex: 001/SPD/FST/XII/2025" className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            <input
+              type="text"
+              aria-invalid={errors.spd_nomor ? 'true' : 'false'}
+              {...register('spd_nomor', { required: 'Nomor SPD wajib diisi.' })}
+              placeholder="Ex: 001/SPD/FST/XII/2025"
+              className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            {errors.spd_nomor && <p className="text-red-600 text-sm mt-1">{errors.spd_nomor.message}</p>}
           </div>
-          {/* Input PPK manual dihapus */}
         </div>
 
         <div className="flex justify-between items-end mt-6 border-b border-neutral-200 pb-2">
@@ -247,17 +258,25 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
                 <div>
                   <label className="text-xs font-medium text-neutral-600">Nama</label>
                   <input 
-                    {...register(`pegawai_list.${idx}.nama_pegawai` as const)} 
+                    aria-invalid={errors.pegawai_list?.[idx]?.nama_pegawai ? 'true' : 'false'}
+                    {...register(`pegawai_list.${idx}.nama_pegawai` as const, { required: 'Nama pegawai wajib diisi.' })} 
                     className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
                     placeholder="Nama Pegawai"
                   />
+                  {errors.pegawai_list?.[idx]?.nama_pegawai && (
+                    <p className="text-red-600 text-sm mt-1">{errors.pegawai_list[idx]?.nama_pegawai?.message as any}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-medium text-neutral-600">NIP</label>
                   <input 
-                    {...register(`pegawai_list.${idx}.nip_pegawai` as const)} 
+                    aria-invalid={errors.pegawai_list?.[idx]?.nip_pegawai ? 'true' : 'false'}
+                    {...register(`pegawai_list.${idx}.nip_pegawai` as const, { required: 'NIP pegawai wajib diisi.' })} 
                     className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
                   />
+                  {errors.pegawai_list?.[idx]?.nip_pegawai && (
+                    <p className="text-red-600 text-sm mt-1">{errors.pegawai_list[idx]?.nip_pegawai?.message as any}</p>
+                  )}
                 </div>
                 
                 {/* Input Tanggal Lahir (Baru) */}
@@ -265,24 +284,36 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
                   <label className="text-xs font-medium text-neutral-600">Tanggal Lahir</label>
                   <input 
                     type="date"
-                    {...register(`pegawai_list.${idx}.tanggal_lahir` as const)} 
+                    aria-invalid={errors.pegawai_list?.[idx]?.tanggal_lahir ? 'true' : 'false'}
+                    {...register(`pegawai_list.${idx}.tanggal_lahir` as const, { required: 'Tanggal lahir wajib diisi.' })} 
                     className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
                   />
+                  {errors.pegawai_list?.[idx]?.tanggal_lahir && (
+                    <p className="text-red-600 text-sm mt-1">{errors.pegawai_list[idx]?.tanggal_lahir?.message as any}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="text-xs font-medium text-neutral-600">Pangkat/Gol</label>
                   <input 
-                    {...register(`pegawai_list.${idx}.pangkat_gol` as const)} 
+                    aria-invalid={errors.pegawai_list?.[idx]?.pangkat_gol ? 'true' : 'false'}
+                    {...register(`pegawai_list.${idx}.pangkat_gol` as const, { required: 'Pangkat/Gol wajib diisi.' })} 
                     className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
                   />
+                  {errors.pegawai_list?.[idx]?.pangkat_gol && (
+                    <p className="text-red-600 text-sm mt-1">{errors.pegawai_list[idx]?.pangkat_gol?.message as any}</p>
+                  )}
                 </div>
                 <div className="md:col-span-2 lg:col-span-4">
                   <label className="text-xs font-medium text-neutral-600">Jabatan</label>
                   <input 
-                    {...register(`pegawai_list.${idx}.jabatan_pegawai` as const)} 
+                    aria-invalid={errors.pegawai_list?.[idx]?.jabatan_pegawai ? 'true' : 'false'}
+                    {...register(`pegawai_list.${idx}.jabatan_pegawai` as const, { required: 'Jabatan wajib diisi.' })} 
                     className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
                   />
+                  {errors.pegawai_list?.[idx]?.jabatan_pegawai && (
+                    <p className="text-red-600 text-sm mt-1">{errors.pegawai_list[idx]?.jabatan_pegawai?.message as any}</p>
+                  )}
                 </div>
               </div>
 
@@ -304,30 +335,39 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
         <h2 className="text-xl font-semibold text-[#5c7a54] border-b pb-2">II. Rincian Tugas / Perjalanan</h2>
         <div>
           <label className="block text-sm font-medium text-neutral-600">Keperluan / Maksud Perjalanan</label>
-          <textarea {...register('maksud_dinas')} rows={3} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          <textarea
+            aria-invalid={errors.maksud_dinas ? 'true' : 'false'}
+            {...register('maksud_dinas', { required: 'Maksud perjalanan wajib diisi.' })}
+            rows={3} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          {errors.maksud_dinas && <p className="text-red-600 text-sm mt-1">{errors.maksud_dinas.message}</p>}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-neutral-600">Alat Angkut</label>
-            <input {...register('alat_angkut')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: Mobil Dinas / Pesawat" />
+            <input {...register('alat_angkut', { required: 'Alat angkut wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: Mobil Dinas / Pesawat" />
+            {errors.alat_angkut && <p className="text-red-600 text-sm mt-1">{errors.alat_angkut.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-600">Tempat Berangkat</label>
-            <input {...register('tempat_berangkat')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            <input aria-invalid={errors.tempat_berangkat ? 'true' : 'false'} {...register('tempat_berangkat', { required: 'Tempat berangkat wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            {errors.tempat_berangkat && <p className="text-red-600 text-sm mt-1">{errors.tempat_berangkat.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-600">Tempat Tujuan</label>
-            <input {...register('tempat_tujuan')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            <input aria-invalid={errors.tempat_tujuan ? 'true' : 'false'} {...register('tempat_tujuan', { required: 'Tempat tujuan wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            {errors.tempat_tujuan && <p className="text-red-600 text-sm mt-1">{errors.tempat_tujuan.message}</p>}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-neutral-600">Tanggal Berangkat</label>
-            <input type="date" {...register('tgl_berangkat')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            <input type="date" aria-invalid={errors.tgl_berangkat ? 'true' : 'false'} {...register('tgl_berangkat', { required: 'Tanggal berangkat wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            {errors.tgl_berangkat && <p className="text-red-600 text-sm mt-1">{errors.tgl_berangkat.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-600">Tanggal Kembali</label>
-            <input type="date" {...register('tgl_kembali')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            <input type="date" aria-invalid={errors.tgl_kembali ? 'true' : 'false'} {...register('tgl_kembali', { required: 'Tanggal kembali wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            {errors.tgl_kembali && <p className="text-red-600 text-sm mt-1">{errors.tgl_kembali.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-600">Lama Hari <span className="text-xs text-gray-400 font-normal">(Otomatis)</span></label>
@@ -348,19 +388,23 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
          </div>
         <div>
           <label className="block text-sm font-medium text-neutral-600">Nomor Surat Tugas</label>
-          <input {...register('nomor')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: B-123/Un.13/..." />
+          <input aria-invalid={errors.nomor ? 'true' : 'false'} {...register('nomor', { required: 'Nomor surat tugas wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: B-123/Un.13/..." />
+          {errors.nomor && <p className="text-red-600 text-sm mt-1">{errors.nomor.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-600">Dasar DIPA</label>
-          <input {...register('dasar_dipa')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: DIPA-025..." />
+          <input {...register('dasar_dipa', { required: 'Dasar DIPA wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="Ex: DIPA-025..." />
+          {errors.dasar_dipa && <p className="text-red-600 text-sm mt-1">{errors.dasar_dipa.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-600">Tanggal Surat</label>
-          <input type="date" {...register('tanggal_surat')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          <input type="date" aria-invalid={errors.tanggal_surat ? 'true' : 'false'} {...register('tanggal_surat', { required: 'Tanggal surat wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          {errors.tanggal_surat && <p className="text-red-600 text-sm mt-1">{errors.tanggal_surat.message}</p>}
         </div>
         <div className="md:col-span-3">
           <label className="block text-sm font-medium text-neutral-600">Nama Dekan (Penanda Tangan)</label>
-          <input {...register('nama_dekan')} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          <input aria-invalid={errors.nama_dekan ? 'true' : 'false'} {...register('nama_dekan', { required: 'Nama Dekan wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+          {errors.nama_dekan && <p className="text-red-600 text-sm mt-1">{errors.nama_dekan.message}</p>}
         </div>
       </section>
 
