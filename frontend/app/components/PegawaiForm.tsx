@@ -185,7 +185,9 @@ const PegawaiForm: React.FC = () => {
             {/* Form Edit */}
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Nama Lengkap</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Nama Lengkap
+                  </label>
                   <input
                     type="text"
                     name="nama"
@@ -193,12 +195,17 @@ const PegawaiForm: React.FC = () => {
                     onChange={(e) =>
                       setSelectedPegawai({ ...selectedPegawai, nama: e.target.value })
                     }
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
+                    required
+                    className="w-full border border-neutral-300 rounded-lg p-2.5 
+                    focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                    outline-none transition"
                   />
               </div>
               
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Tanggal Lahir</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Tanggal Lahir
+                  </label>
                   <input
                     type="date"
                     name="tanggal_lahir"
@@ -209,71 +216,89 @@ const PegawaiForm: React.FC = () => {
                         tanggal_lahir: e.target.value,
                       })
                     }
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
+                    required
+                    className="w-full border border-neutral-300 rounded-lg p-2.5 
+                    focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                    outline-none transition"
                   />
               </div>
 
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">NIP</label>
-                  <input
-                    type="text"
-                    name="nip"
-                    value={selectedPegawai.nip}
-                    onChange={(e) =>
-                      setSelectedPegawai({ ...selectedPegawai, nip: e.target.value })
-                    }
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
-                  />
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  NIP
+                </label>
+                <input
+                  type="text"
+                  name="nip"
+                  value={selectedPegawai.nip}
+                  onChange={(e) =>
+                    setSelectedPegawai({ ...selectedPegawai, nip: e.target.value })
+                  }
+                  required
+                  className="w-full border border-neutral-300 rounded-lg p-2.5 
+                  focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                  outline-none transition"
+                />
               </div>
 
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Pangkat / Golongan</label>
-                  <select
-                    name="pangkat_golongan"
-                    value={selectedPegawai.pangkat_golongan}
-                    onChange={(e) =>
-                      setSelectedPegawai({
-                        ...selectedPegawai,
-                        pangkat_golongan: e.target.value,
-                      })
-                    }
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
-                  >
-                    <option value="">-- Pilih Pangkat / Golongan --</option>
-                    <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
-                    <option value="Juru Muda Tk.I (I/b)">Juru Muda Tk.I (I/b)</option>
-                    <option value="Juru (I/c)">Juru (I/c)</option>
-                    <option value="Juru Tk.I (I/d)">Juru Tk.I (I/d)</option>
-                    <option value="Pengatur Muda (II/a)">Pengatur Muda (II/a)</option>
-                    <option value="Pengatur Muda Tk.I (II/b)">Pengatur Muda Tk.I (II/b)</option>
-                    <option value="Pengatur (II/c)">Pengatur (II/c)</option>
-                    <option value="Pengatur Tk.I (II/d)">Pengatur Tk.I (II/d)</option>
-                    <option value="Penata Muda (III/a)">Penata Muda (III/a)</option>
-                    <option value="Penata Muda Tk.I (III/b)">Penata Muda Tk.I (III/b)</option>
-                    <option value="Penata (III/c)">Penata (III/c)</option>
-                    <option value="Penata Tk.I (III/d)">Penata Tk.I (III/d)</option>
-                    <option value="Pembina (IV/a)">Pembina (IV/a)</option>
-                    <option value="Pembina Tk.I (IV/b)">Pembina Tk.I (IV/b)</option>
-                    <option value="Pembina Utama Muda (IV/c)">Pembina Utama Muda (IV/c)</option>
-                    <option value="Pembina Utama Madya (IV/d)">Pembina Utama Madya (IV/d)</option>
-                    <option value="Pembina Utama (IV/e)">Pembina Utama (IV/e)</option>
-                  </select>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Pangkat / Golongan
+                </label>
+                <select
+                  name="pangkat_golongan"
+                  value={selectedPegawai.pangkat_golongan}
+                  onChange={(e) =>
+                    setSelectedPegawai({
+                      ...selectedPegawai,
+                      pangkat_golongan: e.target.value,
+                    })
+                  }
+                  required
+                  className="w-full border border-neutral-300 rounded-lg p-2.5 
+                  focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                  outline-none transition"
+                >
+                  <option value="">-- Pilih Pangkat / Golongan --</option>
+                  <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
+                  <option value="Juru Muda Tk.I (I/b)">Juru Muda Tk.I (I/b)</option>
+                  <option value="Juru (I/c)">Juru (I/c)</option>
+                  <option value="Juru Tk.I (I/d)">Juru Tk.I (I/d)</option>
+                  <option value="Pengatur Muda (II/a)">Pengatur Muda (II/a)</option>
+                  <option value="Pengatur Muda Tk.I (II/b)">Pengatur Muda Tk.I (II/b)</option>
+                  <option value="Pengatur (II/c)">Pengatur (II/c)</option>
+                  <option value="Pengatur Tk.I (II/d)">Pengatur Tk.I (II/d)</option>
+                  <option value="Penata Muda (III/a)">Penata Muda (III/a)</option>
+                  <option value="Penata Muda Tk.I (III/b)">Penata Muda Tk.I (III/b)</option>
+                  <option value="Penata (III/c)">Penata (III/c)</option>
+                  <option value="Penata Tk.I (III/d)">Penata Tk.I (III/d)</option>
+                  <option value="Pembina (IV/a)">Pembina (IV/a)</option>
+                  <option value="Pembina Tk.I (IV/b)">Pembina Tk.I (IV/b)</option>
+                  <option value="Pembina Utama Muda (IV/c)">Pembina Utama Muda (IV/c)</option>
+                  <option value="Pembina Utama Madya (IV/d)">Pembina Utama Madya (IV/d)</option>
+                  <option value="Pembina Utama (IV/e)">Pembina Utama (IV/e)</option>
+                </select>
               </div>
 
               <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Jabatan / Instansi</label>
-                  <input
-                    type="text"
-                    name="jabatan_instansi"
-                    value={selectedPegawai.jabatan_instansi}
-                    onChange={(e) =>
-                      setSelectedPegawai({
-                        ...selectedPegawai,
-                        jabatan_instansi: e.target.value,
-                      })
-                    }
-                    className="w-full border border-neutral-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
-                  />
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Jabatan / Instansi
+                </label>
+                <input
+                  type="text"
+                  name="jabatan_instansi"
+                  value={selectedPegawai.jabatan_instansi}
+                  onChange={(e) =>
+                    setSelectedPegawai({
+                      ...selectedPegawai,
+                      jabatan_instansi: e.target.value,
+                    })
+                  }
+                  required
+                  className="w-full border border-neutral-300 rounded-lg p-2.5 
+                  focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] 
+                  outline-none transition"
+                />
               </div>
 
               <div className="flex justify-end gap-3 mt-6">

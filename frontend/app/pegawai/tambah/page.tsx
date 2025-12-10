@@ -124,9 +124,12 @@ const TambahPegawai: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="Masukkan NIP"
+              inputMode="numeric"
+              pattern="[0-9]*" 
               className="w-full border border-neutral-300 rounded-lg p-3 focus:ring-2 focus:ring-[#5c7a54] focus:border-[#5c7a54] outline-none transition"
             />
-          </div>
+          </div>
+
 
           {/* ComboBox: Pangkat & Golongan */}
           <div>
