@@ -122,8 +122,10 @@ exports.downloadSPD = async (req, res) => {
 
     const data = {
       spd_nomor: surat.spd_nomor || '',
-      ppk_name: ketua.nama_pegawai || '', 
-      ppk_nip: ketua.nip_pegawai || '',
+      // Fix: PPK diambil dari field khusus (surat.ppk_name), bukan dari ketua tim
+      ppk_name: surat.ppk_name || ketua.nama_pegawai || '', 
+      ppk_nip: surat.ppk_nip || ketua.nip_pegawai || '',
+      // Fix: Yang Diperintah adalah Ketua Tim (Pegawai Pertama)
       pegawai_nama_nip: `${ketua.nama_pegawai || ''} / NIP ${ketua.nip_pegawai || ''}`,
       pangkat_gol: ketua.pangkat_gol || surat.pangkat_gol || '',
       jabatan_instansi: ketua.jabatan_pegawai || surat.jabatan_instansi || '',
@@ -136,6 +138,7 @@ exports.downloadSPD = async (req, res) => {
       tgl_berangkat: formatDate(surat.tgl_berangkat),
       tgl_kembali: formatDate(surat.tgl_kembali),
       tgl_dikeluarkan: formatDate(surat.tanggal_surat || new Date()),
+      nama_dekan: surat.nama_dekan || '',
       pengikut_loop: finalPengikutData,
     };
 
@@ -160,11 +163,11 @@ exports.perjalananDinas = async (req, res) => {
       tempat_berangkat, tempat_tujuan, lama_hari
     } = req.body;
 
-    // Logika PPK otomatis: Ambil dari pegawai pertama
-    let finalPPKName = '';
-    let finalPPKNip = '';
+    // Logika PPK: Ambil dari input manual (priority 1), atau fallback ke pegawai pertama (priority 2)
+    let finalPPKName = req.body.ppk_name;
+    let finalPPKNip = req.body.ppk_nip;
 
-    if (pegawai_list && pegawai_list.length > 0) {
+    if (!finalPPKName && pegawai_list && pegawai_list.length > 0) {
         finalPPKName = pegawai_list[0].nama_pegawai;
         finalPPKNip = pegawai_list[0].nip_pegawai;
     }
@@ -174,8 +177,8 @@ exports.perjalananDinas = async (req, res) => {
       pengikut_list: pengikut_list || [],
       nomor, dasar_dipa, tanggal_surat, nama_dekan, maksud_dinas,
       tgl_berangkat, tgl_kembali, spd_nomor, 
-      ppk_name: finalPPKName, // Otomatis
-      ppk_nip: finalPPKNip,   // Otomatis
+      ppk_name: finalPPKName, 
+      ppk_nip: finalPPKNip,
       pangkat_gol, jabatan_instansi, tingkat_biaya, alat_angkut,
       tempat_berangkat, tempat_tujuan, lama_hari
     });
@@ -238,11 +241,15 @@ exports.updateSurat = async (req, res) => {
       }
     });
 
-    // Recalculate PPK fields if pegawai_list provided
-    if (req.body.pegawai_list && Array.isArray(req.body.pegawai_list) && req.body.pegawai_list.length > 0) {
-      surat.ppk_name = req.body.pegawai_list[0].nama_pegawai || surat.ppk_name;
-      surat.ppk_nip = req.body.pegawai_list[0].nip_pegawai || surat.ppk_nip;
-    }
+    // Recalculate PPK fields if explicitly provided, otherwise keep existing
+    if (req.body.ppk_name) surat.ppk_name = req.body.ppk_name;
+    if (req.body.ppk_nip) surat.ppk_nip = req.body.ppk_nip;
+
+    // Remove legacy override logic (PPK != Pegawai Pertama anymore)
+    // if (req.body.pegawai_list && Array.isArray(req.body.pegawai_list) && req.body.pegawai_list.length > 0) {
+    //   surat.ppk_name = req.body.pegawai_list[0].nama_pegawai || surat.ppk_name;
+    //   surat.ppk_nip = req.body.pegawai_list[0].nip_pegawai || surat.ppk_nip;
+    // }
 
     await surat.save();
 

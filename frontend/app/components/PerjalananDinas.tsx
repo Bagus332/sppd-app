@@ -46,6 +46,8 @@ export type FormSuratGabunganData = {
   lama_hari?: number | string;
   tgl_berangkat?: string;
   tgl_kembali?: string;
+  ppk_name?: string;
+  ppk_nip?: string;
 };
 
 interface PerjalananDinasProps {
@@ -65,6 +67,8 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
       tingkat_biaya: 'DIPA FST',
       lama_hari: 0,
       tanggal_surat: new Date().toISOString().substring(0, 10),
+      ppk_name: '',
+      ppk_nip: '',
       ...initialData
     },
   });
@@ -132,6 +136,18 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
     }
   };
 
+  const handleSelectPPK = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const selectedId = e.target.value;
+      if (!selectedId) return;
+  
+      const selectedPegawai = dbPegawai.find((p: PegawaiDB) => p.id.toString() === selectedId);
+  
+      if (selectedPegawai) {
+        setValue('ppk_name', selectedPegawai.nama);
+        setValue('ppk_nip', selectedPegawai.nip);
+      }
+  };
+
   const onSubmit: SubmitHandler<FormSuratGabunganData> = async (data) => {
     // additional safety check: require at least one pegawai
     if (!data.pegawai_list || data.pegawai_list.length === 0) {
@@ -152,7 +168,7 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
     setSubmitStatus('idle');
 
     try {
-      // Payload dikirim apa adanya, backend akan menghandle PPK dari pegawai pertama
+      // Payload dikirim apa adanya, backend akan menghandle logic simpan
       const payload = { ...data, pengikut_list: [] };
 
       if (isEdit && initialData?.id) {
@@ -188,8 +204,48 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
         <h1 className="text-3xl font-bold text-[#5c7a54]">
             {isEdit ? 'Edit Data Perjalanan Dinas' : 'Form Gabungan — Surat Tugas & SPD'}
         </h1>
-        <p className="text-sm text-neutral-600">Pegawai Pertama otomatis dianggap sebagai <b>Pejabat Pembuat Komitmen (PPK)</b>.</p>
+        <p className="text-sm text-neutral-600">Silakan isi data PPK dan Pegawai yang bertugas.</p>
       </div>
+
+      {/* 0. Data PPK (Pejabat Pembuat Komitmen) */}
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold text-[#5c7a54] border-b pb-2">Data Pejabat Pembuat Komitmen (PPK)</h2>
+        <div className="p-5 bg-blue-50/50 rounded-xl shadow-sm border border-blue-100">
+             <div className="mb-4">
+                 <label className="text-sm font-bold text-gray-700 block mb-1">Pilih PPK dari Database</label>
+                 <select 
+                   className="w-full text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-[#5c7a54] focus:ring-1 focus:ring-[#5c7a54]"
+                   onChange={handleSelectPPK}
+                   defaultValue=""
+                 >
+                   <option value="" disabled>-- Pilih PPK --</option>
+                   {dbPegawai.map((p: PegawaiDB) => (
+                     <option key={p.id} value={p.id}>{p.nama} - {p.nip}</option>
+                   ))}
+                 </select>
+             </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-neutral-600">Nama PPK</label>
+                  <input 
+                    {...register('ppk_name', { required: 'Nama PPK wajib diisi.' })}
+                    className="w-full px-3 py-2 bg-white border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
+                    placeholder="Nama PPK"
+                  />
+                  {errors.ppk_name && <p className="text-red-600 text-sm mt-1">{errors.ppk_name.message}</p>}
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-neutral-600">NIP PPK</label>
+                  <input 
+                    {...register('ppk_nip', { required: 'NIP PPK wajib diisi.' })}
+                    className="w-full px-3 py-2 bg-white border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" 
+                    placeholder="NIP PPK"
+                  />
+                  {errors.ppk_nip && <p className="text-red-600 text-sm mt-1">{errors.ppk_nip.message}</p>}
+                </div>
+             </div>
+        </div>
+      </section>
 
       {/* I. Data Administrasi & Pegawai */}
       <section className="space-y-6">
@@ -222,17 +278,17 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
         <div className="space-y-4">
           {pegawaiFields.length === 0 && (
             <div className="p-6 text-center border-2 border-dashed border-neutral-200 rounded-xl bg-neutral-50 text-neutral-400 text-sm">
-              Belum ada pegawai. <b>Pegawai pertama yang ditambahkan akan menjadi PPK.</b>
+              Belum ada pegawai. <b>Pegawai pertama yang ditambahkan otomatis menjadi Ketua Tim.</b>
             </div>
           )}
 
           {pegawaiFields.map((field, idx) => (
             <div key={field.id} className="p-5 bg-white rounded-xl shadow-sm border border-neutral-200 relative transition-all hover:shadow-md">
               
-              {/* Badge untuk Pegawai Pertama = PPK */}
+              {/* Badge untuk Pegawai Pertama = Ketua Tim */}
               {idx === 0 && (
-                <div className="absolute -top-3 left-4 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded border border-blue-200">
-                  PPK / Ketua Tim
+                <div className="absolute -top-3 left-4 bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200 shadow-sm z-10">
+                  Ketua Tim / Pelaksana Utama
                 </div>
               )}
 
