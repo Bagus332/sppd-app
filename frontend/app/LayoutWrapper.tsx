@@ -12,11 +12,11 @@ export default function LayoutWrapper({
   const pathname = usePathname();
 
   // halaman tanpa sidebar & navbar
-  const noLayoutPages = ["/", "/register"];
+  const noLayoutPages = ["/login", "/register"];
   const isNoLayoutPage = noLayoutPages.includes(pathname);
 
   if (isNoLayoutPage) {
-      return <main className="min-h-screen w-full">{children}</main>;
+    return <main className="min-h-screen w-full">{children}</main>;
   }
 
   return (
