@@ -4,12 +4,19 @@ import { usePathname } from "next/navigation";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
-export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
+export default function LayoutWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
 
-  if (isLoginPage) {
-    return <main className="min-h-screen">{children}</main>;
+  // halaman tanpa sidebar & navbar
+  const noLayoutPages = ["/", "/register"];
+  const isNoLayoutPage = noLayoutPages.includes(pathname);
+
+  if (isNoLayoutPage) {
+      return <main className="min-h-screen w-full">{children}</main>;
   }
 
   return (
