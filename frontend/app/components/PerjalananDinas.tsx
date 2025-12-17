@@ -36,6 +36,7 @@ export type FormSuratGabunganData = {
   tanggal_selesai?: string;
   tanggal_surat?: string;
   nama_dekan?: string;
+  nip_dekan?: string;
   pegawai_list: PegawaiItem[];
   spd_nomor?: string;
   tingkat_biaya?: string;
@@ -69,6 +70,7 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
       tanggal_surat: new Date().toISOString().substring(0, 10),
       ppk_name: '',
       ppk_nip: '',
+        nip_dekan: '',
       ...initialData
     },
   });
@@ -146,6 +148,17 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
         setValue('ppk_name', selectedPegawai.nama);
         setValue('ppk_nip', selectedPegawai.nip);
       }
+  };
+
+  const handleSelectDekan = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    if (!selectedId) return;
+
+    const selectedPegawai = dbPegawai.find((p: PegawaiDB) => p.id.toString() === selectedId);
+    if (selectedPegawai) {
+      setValue('nama_dekan', selectedPegawai.nama);
+      setValue('nip_dekan', selectedPegawai.nip);
+    }
   };
 
   const onSubmit: SubmitHandler<FormSuratGabunganData> = async (data) => {
@@ -483,10 +496,33 @@ export default function PerjalananDinas({ initialData, isEdit = false }: Perjala
           <input type="date" aria-invalid={errors.tanggal_surat ? 'true' : 'false'} {...register('tanggal_surat', { required: 'Tanggal surat wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
           {errors.tanggal_surat && <p className="text-red-600 text-sm mt-1">{errors.tanggal_surat.message}</p>}
         </div>
-        <div className="md:col-span-3">
+        <div className="md:col-span-3 space-y-3">
           <label className="block text-sm font-medium text-neutral-600">Nama Dekan (Penanda Tangan)</label>
-          <input aria-invalid={errors.nama_dekan ? 'true' : 'false'} {...register('nama_dekan', { required: 'Nama Dekan wajib diisi.' })} className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
-          {errors.nama_dekan && <p className="text-red-600 text-sm mt-1">{errors.nama_dekan.message}</p>}
+
+          <div className="flex flex-col md:flex-row md:items-center md:gap-4">
+            <div className="flex-1">
+              <select
+                className="w-full text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-[#5c7a54] focus:ring-1 focus:ring-[#5c7a54]"
+                onChange={handleSelectDekan}
+                defaultValue=""
+              >
+                <option value="" disabled>-- Pilih Dekan dari Database (opsional) --</option>
+                {dbPegawai.map((p: PegawaiDB) => (
+                  <option key={p.id} value={p.id}>{p.nama} - {p.nip}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1">
+              <input aria-invalid={errors.nama_dekan ? 'true' : 'false'} {...register('nama_dekan', { required: 'Nama Dekan wajib diisi.' })} placeholder="Nama Dekan" className="w-full px-4 py-2.5 bg-neutral-50 border rounded-lg text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-neutral-600">NIP Dekan</label>
+            <input {...register('nip_dekan', { required: 'NIP Dekan wajib diisi.' })} className="w-full px-3 py-2 bg-neutral-50 border rounded text-black focus:ring-[#5c7a54] focus:border-[#5c7a54]" placeholder="NIP Dekan" />
+            {errors.nip_dekan && <p className="text-red-600 text-sm mt-1">{errors.nip_dekan.message}</p>}
+          </div>
         </div>
       </section>
 

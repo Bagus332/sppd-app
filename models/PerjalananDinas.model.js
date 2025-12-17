@@ -18,6 +18,10 @@ const PerjalananDinas = sequelize.define('PerjalananDinas', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  nip_dekan: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   maksud_dinas: {
     type: DataTypes.TEXT,
     allowNull: true,

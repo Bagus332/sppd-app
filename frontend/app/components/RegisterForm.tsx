@@ -55,7 +55,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-full bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
+    <div className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-[#5c7a54]">
           Registrasi Akun SPPD

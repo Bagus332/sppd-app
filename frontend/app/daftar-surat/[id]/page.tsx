@@ -32,6 +32,7 @@ interface SuratDetail {
   lama_hari: string;
   dasar_dipa: string;
   nama_dekan: string;
+  nip_dekan?: string;
   pegawai_list: Pegawai[];
   pengikut_list: Pengikut[];
   createdAt: string;
@@ -273,6 +274,7 @@ export default function DetailSuratPage() {
                    <div>
                       <label className="text-xs text-neutral-500 font-bold uppercase tracking-wider">Penandatangan</label>
                       <p className="text-neutral-900 mt-1 text-sm">{surat.nama_dekan || '-'}</p>
+                      {surat.nip_dekan && <p className="text-neutral-700 text-sm mt-1">NIP: {surat.nip_dekan}</p>}
                    </div>
                 </div>
              </div>

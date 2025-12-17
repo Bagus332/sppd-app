@@ -69,6 +69,7 @@ exports.downloadSuratTugas = async (req, res) => {
       tanggal_selesai: formatDate(surat.tgl_kembali),
       tanggal_surat: formatDate(surat.tanggal_surat),
       nama_dekan: surat.nama_dekan || '',
+      nip_dekan: surat.nip_dekan || '',
     };
 
     if (isMulti) {
@@ -139,6 +140,7 @@ exports.downloadSPD = async (req, res) => {
       tgl_kembali: formatDate(surat.tgl_kembali),
       tgl_dikeluarkan: formatDate(surat.tanggal_surat || new Date()),
       nama_dekan: surat.nama_dekan || '',
+      nip_dekan: surat.nip_dekan || '',
       pengikut_loop: finalPengikutData,
     };
 
@@ -160,7 +162,7 @@ exports.perjalananDinas = async (req, res) => {
       pegawai_list, pengikut_list, nomor, dasar_dipa, tanggal_surat, nama_dekan,
       maksud_dinas, tgl_berangkat, tgl_kembali, spd_nomor,
       pangkat_gol, jabatan_instansi, tingkat_biaya, alat_angkut,
-      tempat_berangkat, tempat_tujuan, lama_hari
+      tempat_berangkat, tempat_tujuan, lama_hari, nip_dekan
     } = req.body;
 
     // Logika PPK: Ambil dari input manual (priority 1), atau fallback ke pegawai pertama (priority 2)
@@ -176,6 +178,7 @@ exports.perjalananDinas = async (req, res) => {
       pegawai_list: pegawai_list || [],
       pengikut_list: pengikut_list || [],
       nomor, dasar_dipa, tanggal_surat, nama_dekan, maksud_dinas,
+      nip_dekan,
       tgl_berangkat, tgl_kembali, spd_nomor, 
       ppk_name: finalPPKName, 
       ppk_nip: finalPPKNip,
@@ -230,6 +233,7 @@ exports.updateSurat = async (req, res) => {
 
     const updatableFields = [
       'pegawai_list','pengikut_list','nomor','dasar_dipa','tanggal_surat','nama_dekan',
+      'nip_dekan',
       'maksud_dinas','tgl_berangkat','tgl_kembali','spd_nomor','pangkat_gol','jabatan_instansi',
       'tingkat_biaya','alat_angkut','tempat_berangkat','tempat_tujuan','lama_hari'
     ];
