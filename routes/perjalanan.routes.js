@@ -28,8 +28,14 @@ router.get("/spd", async (req, res) => {
     const replacements = {};
 
     if (dari && sampai) {
-      query += " WHERE tanggal_berangkat BETWEEN :dari AND :sampai";
+      query += " WHERE tgl_berangkat BETWEEN :dari AND :sampai";
       replacements.dari = dari;
+      replacements.sampai = sampai;
+    } else if (dari) {
+      query += " WHERE tgl_berangkat >= :dari";
+      replacements.dari = dari;
+    } else if (sampai) {
+      query += " WHERE tgl_berangkat <= :sampai";
       replacements.sampai = sampai;
     }
 
@@ -51,8 +57,14 @@ router.get("/spd/export", async (req, res) => {
     const replacements = {};
 
     if (dari && sampai) {
-      query += " WHERE tanggal_berangkat BETWEEN :dari AND :sampai";
+      query += " WHERE tgl_berangkat BETWEEN :dari AND :sampai";
       replacements.dari = dari;
+      replacements.sampai = sampai;
+    } else if (dari) {
+      query += " WHERE tgl_berangkat >= :dari";
+      replacements.dari = dari;
+    } else if (sampai) {
+      query += " WHERE tgl_berangkat <= :sampai";
       replacements.sampai = sampai;
     }
 
