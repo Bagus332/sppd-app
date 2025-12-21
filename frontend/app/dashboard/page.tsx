@@ -1,9 +1,13 @@
+
 import { redirect } from 'next/navigation';
 import { fetchServer } from '../../lib/api-server';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChartIcon, PersonIcon, FileTextIcon, RocketIcon, PlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 import { OverviewChart } from '@/components/dashboard/overview-chart';
+
+// Force dynamic rendering because we check cookies for auth
+export const dynamic = 'force-dynamic';
 
 interface DashboardStats {
   totalPerjalanan: number;
