@@ -15,22 +15,17 @@ export function middleware(request: NextRequest) {
     // Redirect logic
     // 1. If no token and trying to access protected route -> Login
     if (!token && !isPublicPath) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = '/login';
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // 2. If token exists and trying to access public route -> Dashboard
     if (token && isPublicPath) {
-      const dashboardUrl = request.nextUrl.clone();
-      dashboardUrl.pathname = '/dashboard';
-      return NextResponse.redirect(dashboardUrl);
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     return NextResponse.next();
   } catch (error) {
     console.error('Middleware Error:', error);
-    // In case of error, allow request to proceed to avoid blocking the site
     return NextResponse.next();
   }
 }
