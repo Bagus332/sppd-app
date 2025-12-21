@@ -25,8 +25,8 @@ export default function LoginForm() {
     const password = formData.get('password');
 
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        const response = await fetch(`${baseUrl}/api/auth/login`, {
+        // Use local proxy to set cookies correctly on Vercel
+        const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

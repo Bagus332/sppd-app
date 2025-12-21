@@ -80,6 +80,7 @@ exports.login = async (req, res) => {
 
     return res.status(200).json({
       message: "Login berhasil",
+      token, // Return token explicitly for frontend proxy handling
       user: {
         id: user.id,
         username: user.username,
