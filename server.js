@@ -94,3 +94,5 @@ connectDB()
     console.error('❌ Gagal koneksi ke database:', error.message);
     process.exit(1);
   });
+
+module.exports = app;

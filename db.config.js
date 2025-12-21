@@ -10,7 +10,14 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST, // Host Database (misalnya 'localhost')
         dialect: 'mysql',          // Tipe Database
+        port: process.env.DB_PORT || 3306,
         logging: false,            // Matikan logging query SQL untuk membersihkan console
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false // Diperlukan untuk beberapa cloud provider seperti TiDB/Railway
+            }
+        },
         pool: {
             max: 5,
             min: 0,
