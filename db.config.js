@@ -33,9 +33,10 @@ const connectDB = async () => {
         await sequelize.authenticate();
         console.log('Koneksi ke MySQL berhasil.');
 
-        // Sinkronisasi semua model (membuat tabel jika belum ada)
-        // Gunakan { force: true } HANYA saat pengembangan, karena akan menghapus dan membuat ulang tabel
-        await sequelize.sync({ alter: true }); // <-- { alter: true } untuk menambahkan/mengubah kolom tanpa menghapus data
+        // Untuk production/TiDB, sebaiknya hindari { alter: true } otomatis jika tabel sudah ada.
+        // Kita gunakan sync() biasa (create if not exists).
+        // Jika butuh reset tabel saat development, gunakan script terpisah dengan { force: true }.
+        await sequelize.sync(); 
         console.log('Semua model telah disinkronkan!');
 
     } catch (error) {
