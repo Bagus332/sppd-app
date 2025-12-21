@@ -26,7 +26,8 @@ export default function LaporanSPD() {
     setLoading(true);
     setError('');
     try {
-      let url = 'http://localhost:8080/laporan/spd';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      let url = `${baseUrl}/laporan/spd`;
       const params = new URLSearchParams();
       if (from) params.append('dari', from);
       if (to) params.append('sampai', to);
@@ -49,7 +50,8 @@ export default function LaporanSPD() {
   const handleFilter = () => fetchData(dari, sampai);
 
   const handleExport = () => {
-    let url = 'http://localhost:8080/laporan/spd/export';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    let url = `${baseUrl}/laporan/spd/export`;
     const params = new URLSearchParams();
     if (dari) params.append('dari', dari);
     if (sampai) params.append('sampai', sampai);

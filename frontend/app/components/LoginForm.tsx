@@ -25,7 +25,8 @@ export default function LoginForm() {
     const password = formData.get('password');
 
     try {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

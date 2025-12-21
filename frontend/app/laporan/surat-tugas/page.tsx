@@ -33,7 +33,8 @@ export default function LaporanSuratTugas() {
     setLoading(true);
     setError('');
     try {
-      let url = 'http://localhost:8080/laporan/surat-tugas';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      let url = `${baseUrl}/laporan/surat-tugas`;
       if (from && to) url += `?dari=${from}&sampai=${to}`;
       const res = await fetch(url);
       const json = await res.json();
@@ -52,7 +53,8 @@ export default function LaporanSuratTugas() {
   const handleFilter = () => fetchData(dari, sampai);
 
   const handleExport = () => {
-    let url = 'http://localhost:8080/laporan/surat-tugas/export';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    let url = `${baseUrl}/laporan/surat-tugas/export`;
     if (dari && sampai) url += `?dari=${dari}&sampai=${sampai}`;
     window.open(url);
   };

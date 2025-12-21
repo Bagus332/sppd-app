@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_ENDPOINTS } from "@/lib/api-client";
 
 // Tambahkan isAuthenticated di interface
 interface AuthContextType {
@@ -29,7 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:8080/api/auth/check', {
+      // Use env variable or fallback
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.CHECK_AUTH}`, {
         credentials: 'include', // Send httpOnly cookie
       });
       const data = await response.json();
@@ -48,11 +51,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 🔹 Fungsi login - rely on httpOnly cookie from backend
+  // 🔹 Fungsi login
   const login = (data: any) => {
     setUser(data);
     setIsAuthenticated(true);
-    // Backend already set httpOnly cookie, no need for localStorage
   };
 
   // 🔹 Fungsi logout
@@ -62,7 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!confirmLogout) return;
 
     try {
-      await fetch("http://localhost:8080/api/auth/logout", {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      await fetch(`${baseUrl}${API_ENDPOINTS.LOGOUT}`, {
         method: "POST",
         credentials: "include",
       });
