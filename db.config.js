@@ -10,6 +10,7 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST, // Host Database (misalnya 'localhost')
         dialect: 'mysql',          // Tipe Database
+        dialectModule: require('mysql2'), // Fix for Vercel: Explicitly load mysql2
         port: process.env.DB_PORT || 3306,
         logging: false,            // Matikan logging query SQL untuk membersihkan console
         dialectOptions: {
