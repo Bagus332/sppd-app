@@ -24,7 +24,7 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     credentials: true,
   })
 );
@@ -38,11 +38,6 @@ app.use(cookieParser());
 // Middleware logging sederhana untuk debugging
 app.use((req, res, next) => {
   console.log(`\n[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body);
-  } else {
-    console.log('Body: (kosong)');
-  }
   next();
 });
 
@@ -54,6 +49,13 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Selamat datang di API Otomatisasi Surat Perjalanan Dinas 🚀',
+    status: 'Running',
+    env_check: {
+        node_env: process.env.NODE_ENV,
+        has_db_host: !!process.env.DB_HOST,
+        has_db_user: !!process.env.DB_USER,
+        has_db_pass: !!process.env.DB_PASSWORD,
+    }
   });
 });
 
@@ -78,21 +80,23 @@ app.use("/laporan", perjalananRoutes);
 // 🗄️ KONEKSI DATABASE DAN MENJALANKAN SERVER
 // =====================================================
 
+// Attempt to connect to DB, but don't crash if it fails (for Vercel debugging)
 connectDB()
   .then(async () => {
     console.log('✅ Koneksi ke database berhasil.');
-
     // Membuat akun admin awal jika belum ada
     await createInitialAdmin();
+  })
+  .catch((error) => {
+    console.error('❌ Gagal koneksi ke database (Server tetap berjalan):', error.message);
+    // Don't process.exit(1) on Vercel to allow logs/debug route to work
+  });
 
-    // Jalankan server setelah database terkoneksi
+// Jalankan server
+if (require.main === module) {
     app.listen(PORT, () => {
       console.log(`🚀 Server berjalan di port ${PORT}`);
     });
-  })
-  .catch((error) => {
-    console.error('❌ Gagal koneksi ke database:', error.message);
-    process.exit(1);
-  });
+}
 
 module.exports = app;
