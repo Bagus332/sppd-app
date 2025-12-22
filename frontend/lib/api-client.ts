@@ -1,7 +1,8 @@
 // lib/api-client.ts
 // Centralized API client for consistent API calls across the application
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Use empty string to support relative paths (proxy via Next.js Rewrites)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface RequestOptions extends RequestInit {
     data?: any;
