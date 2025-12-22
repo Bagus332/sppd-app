@@ -5,8 +5,22 @@ const fs = require('fs');
 const path = require('path');
 const PerjalananDinas = require('../models/PerjalananDinas.model');
 
-// Use __dirname directly (CommonJS module)
-const currentDir = __dirname;
+// Helper to get templates directory - works in both local and Vercel
+const getTemplatesDir = () => {
+  // Try local development path first (from controllers folder)
+  const localPath = path.resolve(__dirname, '../templates');
+  if (fs.existsSync(localPath)) {
+    return localPath;
+  }
+  // Vercel serverless: templates are at project root
+  const vercelPath = path.resolve(process.cwd(), 'templates');
+  if (fs.existsSync(vercelPath)) {
+    return vercelPath;
+  }
+  // Fallback for Vercel with api directory structure
+  const vercelApiPath = path.resolve(process.cwd(), '../templates');
+  return vercelApiPath;
+};
 
 // ... (Helper functions: formatDate, generateAndSendDocx tetap sama)
 const formatDate = (date) => {
@@ -21,8 +35,10 @@ const formatDate = (date) => {
 const generateAndSendDocx = (res, templateName, data, outputFilename) => {
     // ... (kode helper generateAndSendDocx sama seperti sebelumnya)
     try {
-        const templatePath = path.resolve(currentDir, `../templates/${templateName}`);
-        if (!fs.existsSync(templatePath)) throw new Error(`Template ${templateName} tidak ditemukan.`);
+        const templatesDir = getTemplatesDir();
+        const templatePath = path.join(templatesDir, templateName);
+        console.log(`[DOCX] Looking for template at: ${templatePath}`);
+        if (!fs.existsSync(templatePath)) throw new Error(`Template ${templateName} tidak ditemukan di ${templatePath}`);
 
         const content = fs.readFileSync(templatePath, 'binary');
         const zip = new PizZip(content);

@@ -42,8 +42,8 @@ const connectDB = async () => {
 
     } catch (error) {
         console.error('Koneksi ke MySQL gagal:', error.message);
-        // Keluar dari proses jika koneksi gagal
-        process.exit(1); 
+        // Throw error instead of process.exit for serverless compatibility
+        throw error;
     }
 };
 
