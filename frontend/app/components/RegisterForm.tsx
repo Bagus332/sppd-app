@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LockClosedIcon, PersonIcon, EnvelopeClosedIcon } from '@radix-ui/react-icons';
+import { apiClient } from '@/lib/api-client';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -28,13 +29,12 @@ export default function RegisterForm() {
     }
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${baseUrl}/api/auth/register`, {
+      // Use relative path - will be proxied by Next.js rewrites
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
+        credentials: 'include',
       });
 
       const data = await response.json();

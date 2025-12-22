@@ -1,13 +1,12 @@
+'use client';
 
-import { redirect } from 'next/navigation';
-import { fetchServer } from '../../lib/api-server';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChartIcon, PersonIcon, FileTextIcon, RocketIcon, PlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 import { OverviewChart } from '@/components/dashboard/overview-chart';
-
-// Force dynamic rendering because we check cookies for auth
-export const dynamic = 'force-dynamic';
+import { apiClient, API_ENDPOINTS } from '@/lib/api-client';
 
 interface DashboardStats {
   totalPerjalanan: number;
@@ -16,24 +15,35 @@ interface DashboardStats {
   suratSelesai: number;
 }
 
-export default async function Dashboard() {
-  let stats: DashboardStats = {
+export default function Dashboard() {
+  const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats>({
     totalPerjalanan: 0,
     totalSPD: 0,
     totalPegawai: 0,
     suratSelesai: 0,
-  };
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    const response = await fetchServer<{ success: boolean; data: DashboardStats }>('/api/dashboard/stats');
-    stats = response.data;
-  } catch (error) {
-    if ((error as Error).message === 'Unauthorized') {
-      redirect('/login');
-    }
-    console.error('Failed to fetch dashboard stats:', error);
-    // You might want to show an error state or just empty stats
-  }
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await apiClient.get<{ success: boolean; data: DashboardStats }>(API_ENDPOINTS.DASHBOARD_STATS);
+        setStats(response.data);
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+        // If unauthorized, the interceptor or logic in apiClient/middleware should handle it,
+        // but we can doubly ensure here:
+        if ((error as Error).message.includes('Unauthorized') || (error as Error).message.includes('401')) {
+           router.push('/login');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [router]);
 
   const statsDisplay = [
     { 
@@ -65,6 +75,14 @@ export default async function Dashboard() {
       bg: 'bg-orange-100'
     },
   ];
+
+  if (isLoading) {
+    return (
+        <div className="min-h-screen bg-gray-50/50 p-8 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-8">

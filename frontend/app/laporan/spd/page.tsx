@@ -26,14 +26,14 @@ export default function LaporanSPD() {
     setLoading(true);
     setError('');
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      let url = `${baseUrl}/laporan/spd`;
+      // Use relative path - will be proxied by Next.js rewrites
+      let url = '/laporan/spd';
       const params = new URLSearchParams();
       if (from) params.append('dari', from);
       if (to) params.append('sampai', to);
       const qs = params.toString();
       if (qs) url += `?${qs}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
       setData(json || []);
     } catch (err: unknown) {
@@ -50,8 +50,8 @@ export default function LaporanSPD() {
   const handleFilter = () => fetchData(dari, sampai);
 
   const handleExport = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    let url = `${baseUrl}/laporan/spd/export`;
+    // Use relative path - will be proxied by Next.js rewrites
+    let url = '/laporan/spd/export';
     const params = new URLSearchParams();
     if (dari) params.append('dari', dari);
     if (sampai) params.append('sampai', sampai);

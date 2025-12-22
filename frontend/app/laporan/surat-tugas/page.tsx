@@ -33,10 +33,10 @@ export default function LaporanSuratTugas() {
     setLoading(true);
     setError('');
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      let url = `${baseUrl}/laporan/surat-tugas`;
+      // Use relative path - will be proxied by Next.js rewrites
+      let url = '/laporan/surat-tugas';
       if (from && to) url += `?dari=${from}&sampai=${to}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
       setData(json || []);
     } catch (err: unknown) {
@@ -53,8 +53,8 @@ export default function LaporanSuratTugas() {
   const handleFilter = () => fetchData(dari, sampai);
 
   const handleExport = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    let url = `${baseUrl}/laporan/surat-tugas/export`;
+    // Use relative path - will be proxied by Next.js rewrites
+    let url = '/laporan/surat-tugas/export';
     if (dari && sampai) url += `?dari=${dari}&sampai=${sampai}`;
     window.open(url);
   };

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "@/lib/api-client";
+import { API_ENDPOINTS, apiClient } from "@/lib/api-client";
 
 // Tambahkan isAuthenticated di interface
 interface AuthContextType {
@@ -30,14 +30,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      // Use env variable or fallback
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${baseUrl}${API_ENDPOINTS.CHECK_AUTH}`, {
-        credentials: 'include', // Send httpOnly cookie
-      });
-      const data = await response.json();
+      const data = await apiClient.get<{ loggedIn: boolean; userId?: number }>(API_ENDPOINTS.CHECK_AUTH);
       if (data.loggedIn) {
         setIsAuthenticated(true);
+        // data might contain userId, but we might need more user info. 
+        // For now, consistent with previous logic:
+        // setUser({ id: data.userId }); // Optional: if checkAuth returns user details
       } else {
         setIsAuthenticated(false);
         setUser(null);
@@ -64,11 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!confirmLogout) return;
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      await fetch(`${baseUrl}${API_ENDPOINTS.LOGOUT}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiClient.post(API_ENDPOINTS.LOGOUT);
 
       setUser(null);
       setIsAuthenticated(false);
