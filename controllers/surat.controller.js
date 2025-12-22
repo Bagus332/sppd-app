@@ -3,7 +3,20 @@ const Docxtemplater = require('docxtemplater');
 const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
+const { fileURLToPath } = require('url');
 const PerjalananDinas = require('../models/PerjalananDinas.model');
+
+// Get directory name - works in both CommonJS and ES modules
+const getDirName = () => {
+  try {
+    // Try CommonJS first (should work since package.json has type: commonjs)
+    return __dirname;
+  } catch (e) {
+    // Fallback for ES modules
+    return path.dirname(fileURLToPath(import.meta.url));
+  }
+};
+const currentDir = getDirName();
 
 // ... (Helper functions: formatDate, generateAndSendDocx tetap sama)
 const formatDate = (date) => {
@@ -18,7 +31,7 @@ const formatDate = (date) => {
 const generateAndSendDocx = (res, templateName, data, outputFilename) => {
     // ... (kode helper generateAndSendDocx sama seperti sebelumnya)
     try {
-        const templatePath = path.resolve(__dirname, `../templates/${templateName}`);
+        const templatePath = path.resolve(currentDir, `../templates/${templateName}`);
         if (!fs.existsSync(templatePath)) throw new Error(`Template ${templateName} tidak ditemukan.`);
 
         const content = fs.readFileSync(templatePath, 'binary');
